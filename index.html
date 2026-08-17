@@ -759,6 +759,104 @@ input[type="range"]{padding:0}
   }
 }
 
+
+/* =============================
+   俯瞰モード
+============================= */
+
+.overviewExitButton{
+  display:none;
+}
+
+body.overview-mode{
+  overflow:hidden;
+  background:#faf7ed;
+}
+
+body.overview-mode header,
+body.overview-mode .leftPanel,
+body.overview-mode .rightPanel,
+body.overview-mode .mobileDock,
+body.overview-mode .mobileShade{
+  display:none !important;
+}
+
+body.overview-mode .app{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100vh !important;
+  display:block !important;
+}
+
+body.overview-mode .workspace{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100vh !important;
+  padding:2px !important;
+  overflow:hidden !important;
+  background:#faf7ed !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+body.overview-mode .stageHolder{
+  width:100% !important;
+  height:100% !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+body.overview-mode #stage{
+  border-width:2px !important;
+  box-shadow:none !important;
+}
+
+body.overview-mode .stageItem{
+  cursor:default !important;
+}
+
+body.overview-mode .stageItem.selected{
+  outline:none !important;
+}
+
+body.overview-mode .rotateLine,
+body.overview-mode .rotateHandle{
+  display:none !important;
+}
+
+body.overview-mode .overviewExitButton{
+  display:block;
+  position:fixed;
+  right:max(12px, env(safe-area-inset-right));
+  top:max(12px, env(safe-area-inset-top));
+  z-index:200000;
+  min-width:74px;
+  min-height:42px;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:10px;
+  background:rgba(32,43,55,.94);
+  color:white;
+  font-weight:700;
+  box-shadow:0 3px 12px rgba(0,0,0,.35);
+  touch-action:manipulation;
+}
+
+
+body.overview-mode .stageHolder{
+  overflow:visible !important;
+}
+
+body.overview-mode #stage{
+  flex:0 0 auto;
+}
+
 </style>
 </head>
 
@@ -1259,11 +1357,13 @@ JSON読み込み
 </div>
 
 
+<button id="overviewExitButton" class="overviewExitButton" type="button">戻る</button>
+
 <div class="mobileShade" id="mobileShade"></div>
 
 <div class="mobileDock">
  <button id="mobileInstrumentsButton" type="button">🎺 楽器</button>
- <button id="mobileFitButton" type="button">↔ 舞台全体</button>
+ <button id="mobileFitButton" type="button">👁 俯瞰</button>
  <button id="mobileEditButton" type="button">✏️ 編集</button>
 </div>
 
@@ -2558,6 +2658,12 @@ stage.addEventListener(
   "pointerdown",
   event => {
 
+    if(overviewMode){
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     const rotateHandle =
       event.target.closest(
         ".rotateHandle"
@@ -2780,8 +2886,15 @@ function moveItemByPointer(
   event
 ){
 
-  const scale =
-    getScale();
+  /*
+    clientX/clientY は「画面上で実際に動いたピクセル数」。
+    舞台倍率(viewScale)と画面全体倍率(screenScale)の両方を
+    反映しないと、指と楽器の移動量がずれる。
+  */
+  const effectiveScale =
+    getScale() *
+    viewScale *
+    screenScale;
 
 
   const dx =
@@ -2789,7 +2902,7 @@ function moveItemByPointer(
       event.clientX -
       dragState.startClientX
     ) /
-    scale;
+    effectiveScale;
 
 
   const dy =
@@ -2797,7 +2910,7 @@ function moveItemByPointer(
       event.clientY -
       dragState.startClientY
     ) /
-    scale;
+    effectiveScale;
 
 
   let x =
@@ -4478,6 +4591,107 @@ document
 
 
 
+
+let overviewMode = false;
+
+function fitStageToOverview(){
+  const workspaceRect =
+    workspace.getBoundingClientRect();
+
+  const availableWidth =
+    Math.max(
+      160,
+      workspaceRect.width - 2
+    );
+
+  const availableHeight =
+    Math.max(
+      120,
+      workspaceRect.height - 2
+    );
+
+  const baseWidth =
+    1000;
+
+  const baseHeight =
+    baseWidth *
+    stageDepthMM /
+    stageWidthMM;
+
+  /*
+    俯瞰モードは「全体を収める」ではなく
+    「画面を埋める」cover方式。
+    縦横どちらかの余白がなくなるまで拡大し、
+    はみ出した分だけ端を少し切る。
+  */
+  const fittedScale =
+    Math.max(
+      0.10,
+      Math.min(
+        2.5,
+        Math.max(
+          availableWidth / baseWidth,
+          availableHeight / baseHeight
+        )
+      )
+    );
+
+  applyViewScale(
+    fittedScale
+  );
+
+  stageHolder.style.width = "100%";
+  stageHolder.style.height = "100%";
+  stageHolder.style.margin = "0";
+  stageHolder.style.padding = "0";
+
+  workspace.scrollLeft = 0;
+  workspace.scrollTop = 0;
+}
+
+function enterOverviewMode(){
+  overviewMode = true;
+
+  closeMobilePanels();
+
+  selectedId = null;
+  updateSelectionVisuals();
+  showEditor();
+
+  document.body.classList.add(
+    "overview-mode"
+  );
+
+  /*
+    全体UI倍率は一旦100%に戻し、
+    俯瞰は舞台倍率だけで最大化する。
+  */
+  applyScreenScale(1);
+
+  requestAnimationFrame(
+    () => {
+      requestAnimationFrame(
+        fitStageToOverview
+      );
+    }
+  );
+}
+
+function exitOverviewMode(){
+  overviewMode = false;
+
+  document.body.classList.remove(
+    "overview-mode"
+  );
+
+  stageHolder.style.width = "";
+  stageHolder.style.height = "";
+  stageHolder.style.margin = "";
+  stageHolder.style.padding = "";
+
+  refreshMobileLayout();
+}
+
 function isMobileLayout(){
   /*
     Googleサイト埋め込み・横画面でもスマホUIになるよう、
@@ -4694,6 +4908,11 @@ const mobileShade =
     "mobileShade"
   );
 
+const overviewExitButton =
+  document.getElementById(
+    "overviewExitButton"
+  );
+
 
 if(mobileInstrumentsButton){
   mobileInstrumentsButton.addEventListener(
@@ -4713,13 +4932,7 @@ if(mobileFitButton){
     event => {
       event.preventDefault();
       event.stopPropagation();
-
-      mobileFitButton.textContent =
-        "調整中…";
-
-      requestAnimationFrame(
-        fitStageToMobile
-      );
+      enterOverviewMode();
     }
   );
 }
@@ -4766,6 +4979,17 @@ if(mobileShade){
   );
 }
 
+if(overviewExitButton){
+  overviewExitButton.addEventListener(
+    "click",
+    event => {
+      event.preventDefault();
+      event.stopPropagation();
+      exitOverviewMode();
+    }
+  );
+}
+
 
 /*
   楽器を追加したら左メニューを閉じる。
@@ -4802,7 +5026,14 @@ function scheduleMobileRefresh(){
 
   resizeTimer =
     window.setTimeout(
-      refreshMobileLayout,
+      () => {
+        if(overviewMode){
+          fitStageToOverview();
+        }
+        else{
+          refreshMobileLayout();
+        }
+      },
       120
     );
 }
@@ -4818,7 +5049,14 @@ window.addEventListener(
     closeMobilePanels();
 
     window.setTimeout(
-      refreshMobileLayout,
+      () => {
+        if(overviewMode){
+          fitStageToOverview();
+        }
+        else{
+          refreshMobileLayout();
+        }
+      },
       220
     );
   }
