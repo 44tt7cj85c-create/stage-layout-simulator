@@ -825,6 +825,25 @@ input[type="range"]{padding:0}
   display:block;
 }
 
+
+/* =============================
+   横画面スマホ：舞台中央表示
+============================= */
+@media(max-width:950px) and (orientation:landscape){
+  .workspace{
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+  }
+
+  .stageHolder{
+    width:auto !important;
+    min-width:0 !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+}
+
 </style>
 </head>
 
@@ -4926,7 +4945,29 @@ function refreshMobileLayout(){
     requestAnimationFrame(
       () => {
         requestAnimationFrame(
-          fitStageToMobile
+          () => {
+            fitStageToMobile();
+
+            if(
+              window.matchMedia(
+                "(orientation:landscape)"
+              ).matches
+            ){
+              requestAnimationFrame(
+                () => {
+                  const maxScrollLeft =
+                    Math.max(
+                      0,
+                      workspace.scrollWidth -
+                      workspace.clientWidth
+                    );
+
+                  workspace.scrollLeft =
+                    maxScrollLeft / 2;
+                }
+              );
+            }
+          }
         );
       }
     );
