@@ -823,7 +823,7 @@ input[type="range"]{padding:0}
 <header>
   <h1>🎺 吹奏楽 ステージ配置シミュレーター</h1>
   <div class="headerHelp">
-    初期舞台 7200×12600mm ／ 1マス1800mm
+    初期舞台 12600×7200mm ／ 1マス1800mm
   </div>
 
   <div class="viewControls" aria-label="表示倍率">
@@ -1353,8 +1353,8 @@ const viewScaleLabel =
    状態
 ============================= */
 
-let stageWidthMM = 7200;
-let stageDepthMM = 12600;
+let stageWidthMM = 12600;
+let stageDepthMM = 7200;
 
 let items = [];
 
@@ -1395,7 +1395,7 @@ const backgroundState = {
 
 let viewScale = 1;
 
-const VIEW_SCALE_MIN = 0.40;
+const VIEW_SCALE_MIN = 0.15;
 const VIEW_SCALE_MAX = 2.50;
 
 /* 画面全体の倍率 */
@@ -1944,6 +1944,12 @@ function applyStageSettings(){
   keepAllInsideStage();
 
   render();
+
+  if(isMobileLayout()){
+    requestAnimationFrame(
+      fitStageToMobile
+    );
+  }
 }
 
 
@@ -4556,31 +4562,92 @@ function fitStageToMobile(){
     return;
   }
 
+  closeMobilePanels();
+
+  /*
+    実際に見えている作業エリアから、
+    上下左右に少し余白を残して舞台全体を収める。
+  */
+  const rect =
+    workspace.getBoundingClientRect();
+
   const availableWidth =
-    Math.max(260, workspace.clientWidth - 16);
+    Math.max(
+      200,
+      rect.width - 20
+    );
 
   const availableHeight =
-    Math.max(220, workspace.clientHeight - 84);
+    Math.max(
+      160,
+      rect.height - 92
+    );
+
+  /*
+    stage の素の100%サイズから倍率を算出。
+    現在の倍率やスクロール位置には影響されない。
+  */
+  const baseWidth =
+    1000;
+
+  const baseHeight =
+    baseWidth *
+    stageDepthMM /
+    stageWidthMM;
 
   const scaleByWidth =
-    availableWidth / stage.offsetWidth;
+    availableWidth /
+    baseWidth;
 
   const scaleByHeight =
-    availableHeight / stage.offsetHeight;
+    availableHeight /
+    baseHeight;
 
   const fittedScale =
-    Math.min(
-      1,
-      scaleByWidth,
-      scaleByHeight
+    Math.max(
+      VIEW_SCALE_MIN,
+      Math.min(
+        1,
+        scaleByWidth,
+        scaleByHeight
+      )
     );
 
   applyViewScale(fittedScale);
 
-  workspace.scrollLeft = 0;
-  workspace.scrollTop = 0;
-}
+  /*
+    レイアウト計算が終わってから先頭へ戻す。
+  */
+  requestAnimationFrame(
+    () => {
+      workspace.scrollLeft = 0;
+      workspace.scrollTop = 0;
 
+      const fitButton =
+        document.getElementById("mobileFitButton");
+
+      if(fitButton){
+        const percent =
+          Math.round(
+            fittedScale * 100
+          );
+
+        fitButton.textContent =
+          "✓ 全体 " +
+          percent +
+          "%";
+
+        setTimeout(
+          () => {
+            fitButton.textContent =
+              "↔ 舞台全体";
+          },
+          1200
+        );
+      }
+    }
+  );
+}
 document.addEventListener(
   "click",
   event => {
@@ -4606,7 +4673,13 @@ document.addEventListener(
     if(button.id === "mobileFitButton"){
       event.preventDefault();
       event.stopPropagation();
-      fitStageToMobile();
+
+      button.textContent = "調整中…";
+
+      requestAnimationFrame(
+        () => fitStageToMobile()
+      );
+
       return;
     }
 
