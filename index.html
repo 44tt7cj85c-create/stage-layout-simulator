@@ -761,7 +761,7 @@ input[type="range"]{padding:0}
 
 
 /* =============================
-   俯瞰モード（専用オーバーレイ）
+   俯瞰モード（完成版）
 ============================= */
 
 .overviewLayer{
@@ -769,8 +769,6 @@ input[type="range"]{padding:0}
   position:fixed;
   inset:0;
   z-index:500000;
-  width:100vw;
-  height:100vh;
   overflow:hidden;
   background:#111;
 }
@@ -811,8 +809,8 @@ input[type="range"]{padding:0}
   right:max(12px, env(safe-area-inset-right));
   top:max(12px, env(safe-area-inset-top));
   z-index:500010;
-  min-width:74px;
-  min-height:42px;
+  min-width:78px;
+  min-height:44px;
   padding:8px 12px;
   border:1px solid rgba(255,255,255,.28);
   border-radius:10px;
@@ -4578,10 +4576,25 @@ let overviewPreviousScreenScale = 1;
 let overviewPreviousViewScale = 1;
 
 
-/*
-  俯瞰は専用レイヤーへ stage 自体を一時的に移動する。
-  既存の .app / .workspace / Google Sites iframe のCSS影響を受けにくい。
-*/
+function getOverviewViewportSize(){
+
+  const vv =
+    window.visualViewport;
+
+  return {
+    width:
+      vv && vv.width
+      ? vv.width
+      : window.innerWidth,
+
+    height:
+      vv && vv.height
+      ? vv.height
+      : window.innerHeight
+  };
+}
+
+
 function fitStageToOverview(){
 
   if(
@@ -4592,35 +4605,34 @@ function fitStageToOverview(){
     return;
   }
 
+  const viewport =
+    getOverviewViewportSize();
+
   const availableWidth =
     Math.max(
       160,
-      overviewLayer.clientWidth
+      viewport.width
     );
 
   const availableHeight =
     Math.max(
       120,
-      overviewLayer.clientHeight
+      viewport.height
     );
 
-  const baseWidth = 1000;
+  const baseWidth =
+    1000;
 
   const baseHeight =
     baseWidth *
     stageDepthMM /
     stageWidthMM;
 
-  /*
-    cover方式：
-    余白がなくなるまで拡大。
-    縦横比が違う分だけ端が少し切れる。
-  */
   const fittedScale =
     Math.max(
       0.10,
       Math.min(
-        3,
+        4,
         Math.max(
           availableWidth / baseWidth,
           availableHeight / baseHeight
@@ -4642,6 +4654,12 @@ function fitStageToOverview(){
         fittedScale * 100
       ) + "%";
   }
+
+  overviewLayer.style.width =
+    availableWidth + "px";
+
+  overviewLayer.style.height =
+    availableHeight + "px";
 }
 
 
@@ -4669,10 +4687,6 @@ function enterOverviewMode(){
   overviewPreviousViewScale =
     viewScale;
 
-  /*
-    body transform が fixed レイヤーの座標系を変えるため、
-    俯瞰中だけ画面全体倍率を物理的に解除する。
-  */
   document.body.style.transform = "";
   document.body.style.transformOrigin = "";
   document.body.style.width = "100%";
@@ -4694,9 +4708,6 @@ function enterOverviewMode(){
     "false"
   );
 
-  /*
-    元のstageHolderから俯瞰専用ホストへ移動。
-  */
   overviewStageHost.appendChild(
     stage
   );
@@ -4719,9 +4730,6 @@ function exitOverviewMode(){
 
   overviewMode = false;
 
-  /*
-    stage を元の場所へ戻す。
-  */
   stageHolder.appendChild(
     stage
   );
@@ -4735,9 +4743,9 @@ function exitOverviewMode(){
     "true"
   );
 
-  /*
-    通常画面の倍率を復元。
-  */
+  overviewLayer.style.width = "";
+  overviewLayer.style.height = "";
+
   applyScreenScale(
     overviewPreviousScreenScale
   );
@@ -5118,6 +5126,28 @@ window.addEventListener(
     );
   }
 );
+
+if(window.visualViewport){
+
+  window.visualViewport.addEventListener(
+    "resize",
+    () => {
+      if(overviewMode){
+        fitStageToOverview();
+      }
+    }
+  );
+
+  window.visualViewport.addEventListener(
+    "scroll",
+    () => {
+      if(overviewMode){
+        fitStageToOverview();
+      }
+    }
+  );
+}
+
 
 
 /* =============================
