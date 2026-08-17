@@ -1,0 +1,3824 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>吹奏楽 ステージ配置シミュレーター</title>
+
+<style>
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  color:#222;
+  background:#e6e9ed;
+}
+
+body{overflow:hidden}
+
+button,input,select{font:inherit}
+
+button{
+  border:0;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+button:hover{filter:brightness(.97)}
+button:active{transform:translateY(1px)}
+
+header{
+  height:58px;
+  padding:0 18px;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  background:#202832;
+  color:white;
+}
+
+header h1{
+  margin:0;
+  font-size:18px;
+}
+
+.headerHelp{
+  font-size:12px;
+  color:#c7d0da;
+}
+
+.app{
+  display:grid;
+  grid-template-columns:260px 1fr 300px;
+  height:calc(100vh - 58px);
+}
+
+.panel{
+  padding:13px;
+  overflow-y:auto;
+  background:white;
+}
+
+.leftPanel{border-right:1px solid #c7ccd2}
+.rightPanel{border-left:1px solid #c7ccd2}
+
+.workspace{
+  overflow:auto;
+  padding:30px;
+  background:#dfe3e7;
+}
+
+.stageHolder{
+  min-width:1080px;
+  min-height:720px;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+}
+
+h2{
+  margin:4px 0 10px;
+  font-size:15px;
+}
+
+h3{
+  margin:18px 0 7px;
+  padding-bottom:5px;
+  font-size:13px;
+  border-bottom:1px solid #ddd;
+}
+
+label{
+  display:block;
+  margin-top:8px;
+  font-size:11px;
+  color:#555;
+}
+
+input,select{
+  width:100%;
+  margin-top:3px;
+  padding:7px;
+  border:1px solid #c3c9cf;
+  border-radius:5px;
+  background:white;
+}
+
+input[type="range"]{padding:0}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+
+.instrumentButton{
+  width:100%;
+  margin:3px 0;
+  padding:8px 9px;
+  text-align:left;
+  color:#222;
+  background:#edf1f4;
+}
+
+.instrumentButton:hover{background:#dfe6eb}
+
+.woodButton{border-left:5px solid #8eb5d9}
+.brassButton{border-left:5px solid #e9ca67}
+.percButton{border-left:5px solid #ce7a9e}
+.riserButton{border-left:5px solid #858b92}
+.pianoButton{border-left:5px solid #333}
+
+.primary{
+  color:white;
+  background:#2874d8;
+}
+
+.secondary{
+  color:#222;
+  background:#e1e5e9;
+}
+
+.warning{
+  color:white;
+  background:#e3a03b;
+}
+
+.success{
+  color:white;
+  background:#249a59;
+}
+
+.danger{
+  color:white;
+  background:#d84d4d;
+}
+
+.full{
+  width:100%;
+  margin-top:6px;
+  padding:8px;
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px;
+  margin-top:10px;
+}
+
+.actions button{padding:8px}
+
+.info{
+  padding:9px;
+  border-radius:6px;
+  background:#f1f3f5;
+  font-size:11px;
+  line-height:1.65;
+}
+
+.status{
+  margin-top:8px;
+  padding:8px;
+  border-radius:5px;
+  background:#202b37;
+  color:white;
+  font-size:11px;
+  line-height:1.6;
+  white-space:pre-line;
+}
+
+.smallNote{
+  margin-top:6px;
+  color:#777;
+  font-size:10px;
+  line-height:1.55;
+}
+
+.subBox{
+  margin-top:8px;
+  padding:9px;
+  border:1px solid #d7dbe0;
+  border-radius:6px;
+  background:#fafbfc;
+}
+
+.valueLabel{
+  float:right;
+  color:#2874d8;
+  font-weight:bold;
+}
+
+
+/* =============================
+   舞台
+============================= */
+
+#stage{
+  --grid-size:100px;
+  position:relative;
+  width:1000px;
+  height:571px;
+  overflow:hidden;
+  border:4px solid #444;
+  background-color:#faf7ed;
+  background-image:
+    linear-gradient(to right,rgba(0,0,0,.14) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(0,0,0,.14) 1px,transparent 1px);
+  background-size:var(--grid-size) var(--grid-size);
+  box-shadow:0 8px 28px rgba(0,0,0,.24);
+  user-select:none;
+  touch-action:none;
+}
+
+#backgroundLayer{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  z-index:0;
+}
+
+#backgroundImage{
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  object-fit:fill;
+  transform-origin:center center;
+  pointer-events:none;
+}
+
+.stageLabel{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:2;
+  color:rgba(0,0,0,.25);
+  font-size:17px;
+  letter-spacing:8px;
+  pointer-events:none;
+}
+
+.stageBack{top:8px}
+.stageFront{bottom:8px}
+
+
+/* =============================
+   オブジェクト
+============================= */
+
+.stageItem{
+  position:absolute;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  transform-origin:center center;
+  cursor:grab;
+  user-select:none;
+  touch-action:none;
+  z-index:10;
+}
+
+.stageItem:active{cursor:grabbing}
+
+.stageItem.selected{
+  outline:3px solid #0878ff;
+  outline-offset:3px;
+  z-index:100;
+}
+
+.itemBody{
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border:2px solid rgba(0,0,0,.38);
+  box-shadow:0 2px 5px rgba(0,0,0,.18);
+  overflow:hidden;
+}
+
+.itemLabel{
+  position:relative;
+  z-index:5;
+  padding:2px;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.1;
+  text-align:center;
+  pointer-events:none;
+}
+
+.woodwind .itemBody{
+  border-radius:2px;
+  background:#8eb5d9;
+}
+
+.brass .itemBody{
+  border-radius:2px;
+  background:#e9ca67;
+}
+
+.percussion .itemBody{
+  background:#ce7a9e;
+}
+
+.keyboardPerc .itemBody{
+  border-radius:2px;
+  background:#ce7a9e;
+}
+
+.timpani .itemBody,
+.circlePerc .itemBody{
+  border-radius:50%;
+  background:#ce7a9e;
+}
+
+.drumset .itemBody{
+  border-radius:18px;
+  background:#ce7a9e;
+}
+
+.chime .itemBody,
+.bassDrum .itemBody,
+.stand .itemBody{
+  background:#ce7a9e;
+}
+
+.doubleCircle .itemBody{
+  border:none;
+  box-shadow:none;
+  background:transparent;
+  overflow:visible;
+}
+
+.doubleCircle .itemBody::before,
+.doubleCircle .itemBody::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  width:48%;
+  aspect-ratio:1/1;
+  transform:translateY(-50%);
+  border:2px solid rgba(0,0,0,.38);
+  border-radius:50%;
+  background:#ce7a9e;
+}
+
+.doubleCircle .itemBody::before{left:1%}
+.doubleCircle .itemBody::after{right:1%}
+
+.conductor .itemBody{
+  border-radius:3px;
+  color:white;
+  background:#50575e;
+}
+
+
+/* =============================
+   グランドピアノ
+============================= */
+
+.piano .itemBody{
+  border:2px solid #111;
+  color:white;
+  background:#262626;
+  clip-path:polygon(
+    5% 5%,
+    63% 4%,
+    80% 9%,
+    92% 20%,
+    98% 40%,
+    98% 70%,
+    91% 87%,
+    76% 96%,
+    5% 96%
+  );
+}
+
+
+/* =============================
+   ひな壇
+============================= */
+
+.riser{z-index:4}
+
+.riser .itemBody{
+  border:3px solid #686d73;
+  color:#222;
+}
+
+.riser.height200 .itemBody{
+  background:
+    repeating-linear-gradient(
+      135deg,
+      #d0d3d6,
+      #d0d3d6 9px,
+      #bdc1c5 9px,
+      #bdc1c5 18px
+    );
+}
+
+.riser.height400 .itemBody{
+  background:
+    repeating-linear-gradient(
+      135deg,
+      #aeb3b9,
+      #aeb3b9 9px,
+      #999fa6 9px,
+      #999fa6 18px
+    );
+}
+
+.riser.height600 .itemBody{
+  color:white;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      #91979e,
+      #91979e 9px,
+      #7d848c 9px,
+      #7d848c 18px
+    );
+}
+
+.riser.locked{cursor:not-allowed}
+
+.lockMark{
+  position:absolute;
+  right:4px;
+  top:3px;
+  z-index:7;
+  font-size:12px;
+  pointer-events:none;
+}
+
+
+/* =============================
+   回転
+============================= */
+
+.rotateLine{
+  position:absolute;
+  left:50%;
+  top:-24px;
+  width:2px;
+  height:22px;
+  transform:translateX(-50%);
+  display:none;
+  background:#0878ff;
+  pointer-events:none;
+}
+
+.rotateHandle{
+  position:absolute;
+  left:50%;
+  top:-42px;
+  width:20px;
+  height:20px;
+  transform:translateX(-50%);
+  display:none;
+  border:3px solid white;
+  border-radius:50%;
+  background:#0878ff;
+  box-shadow:0 1px 5px rgba(0,0,0,.45);
+  cursor:grab;
+  z-index:200;
+}
+
+.stageItem.selected .rotateLine,
+.stageItem.selected .rotateHandle{
+  display:block;
+}
+
+.stageItem.locked .rotateLine,
+.stageItem.locked .rotateHandle{
+  display:none;
+}
+
+@media(max-width:950px){
+  .app{grid-template-columns:185px 1fr}
+
+  .rightPanel{
+    position:fixed;
+    right:0;
+    bottom:0;
+    width:280px;
+    max-height:60vh;
+    z-index:999;
+    border-top:1px solid #bbb;
+    box-shadow:0 0 18px rgba(0,0,0,.28);
+  }
+}
+</style>
+</head>
+
+
+<body>
+
+<header>
+  <h1>🎺 吹奏楽 ステージ配置シミュレーター</h1>
+  <div class="headerHelp">
+    初期舞台 12600×7200mm ／ 1マス1800mm
+  </div>
+</header>
+
+
+<div class="app">
+
+<!-- =============================
+     左
+============================= -->
+
+<aside class="panel leftPanel">
+
+<h2>舞台設定</h2>
+
+<div class="row">
+<label>
+横幅 mm
+<input id="stageWidthInput" type="number" value="12600">
+</label>
+
+<label>
+奥行 mm
+<input id="stageDepthInput" type="number" value="7200">
+</label>
+</div>
+
+<label>
+グリッド
+<select id="gridInput">
+  <option value="300">300mm</option>
+  <option value="600">600mm</option>
+  <option value="900">900mm</option>
+  <option value="1800" selected>1800mm</option>
+</select>
+</label>
+
+<button class="primary full" id="applyStageButton">
+舞台設定を反映
+</button>
+
+
+<h3>木管</h3>
+
+<button class="instrumentButton woodButton" data-add="flute">フルート　Fl</button>
+<button class="instrumentButton woodButton" data-add="clarinet">クラリネット　Cl</button>
+<button class="instrumentButton woodButton" data-add="altoClarinet">アルトクラリネット　A.Cl</button>
+<button class="instrumentButton woodButton" data-add="bassClarinet">バスクラリネット　B.Cl</button>
+<button class="instrumentButton woodButton" data-add="oboe">オーボエ　Ob</button>
+<button class="instrumentButton woodButton" data-add="bassoon">ファゴット　Fg</button>
+<button class="instrumentButton woodButton" data-add="altoSax">アルトサックス　A.Sax</button>
+<button class="instrumentButton woodButton" data-add="tenorSax">テナーサックス　T.Sax</button>
+<button class="instrumentButton woodButton" data-add="baritoneSax">バリトンサックス　B.Sax</button>
+
+
+<h3>金管</h3>
+
+<button class="instrumentButton brassButton" data-add="trumpet">トランペット　Tp</button>
+<button class="instrumentButton brassButton" data-add="horn">ホルン　Hr</button>
+<button class="instrumentButton brassButton" data-add="trombone">トロンボーン　Tb</button>
+<button class="instrumentButton brassButton" data-add="euphonium">ユーフォニアム　Euph</button>
+<button class="instrumentButton brassButton" data-add="tuba">チューバ　Tub</button>
+
+
+<h3>打楽器</h3>
+
+<button class="instrumentButton percButton" id="addTimpaniSet">ティンパニ 4台</button>
+<button class="instrumentButton percButton" data-add="drumset">ドラムセット　Drum Set</button>
+<button class="instrumentButton percButton" data-add="xylophone">シロフォン　Xylophone</button>
+<button class="instrumentButton percButton" data-add="vibraphone">ヴィブラフォン　Vibraphone</button>
+<button class="instrumentButton percButton" data-add="marimba">マリンバ　Marimba</button>
+<button class="instrumentButton percButton" data-add="glockenspiel">グロッケン　Glock</button>
+<button class="instrumentButton percButton" data-add="chime">チャイム　Chime</button>
+<button class="instrumentButton percButton" data-add="bassDrum">バスドラム　B.D.</button>
+<button class="instrumentButton percButton" data-add="cymbal">シンバル　Cym</button>
+<button class="instrumentButton percButton" data-add="bongo">ボンゴ　Bong</button>
+<button class="instrumentButton percButton" data-add="conga">コンガ　Cong</button>
+<button class="instrumentButton percButton" data-add="timbales">ティンバレス　Timb</button>
+<button class="instrumentButton percButton" data-add="snare">スネアドラム　S.D.</button>
+<button class="instrumentButton percButton" data-add="suspendCymbal">サスペンドシンバル　S.C</button>
+<button class="instrumentButton percButton" data-add="stand">小物スタンド　Stand</button>
+
+
+<h3>ピアノ</h3>
+
+<button class="instrumentButton pianoButton" data-add="piano">
+グランドピアノ　Piano
+</button>
+
+
+<h3>ひな壇・手動追加</h3>
+
+<button class="instrumentButton riserButton"
+ data-riser-width="1800"
+ data-riser-depth="1800"
+ data-riser-height="200">
+1800×1800 / H200
+</button>
+
+<button class="instrumentButton riserButton"
+ data-riser-width="1800"
+ data-riser-depth="1800"
+ data-riser-height="400">
+1800×1800 / H400
+</button>
+
+<button class="instrumentButton riserButton"
+ data-riser-width="1800"
+ data-riser-depth="1800"
+ data-riser-height="600">
+1800×1800 / H600
+</button>
+
+<button class="instrumentButton riserButton"
+ data-riser-width="1800"
+ data-riser-depth="1200"
+ data-riser-height="200">
+1800×1200 / H200
+</button>
+
+<button class="instrumentButton riserButton"
+ data-riser-width="1800"
+ data-riser-depth="1200"
+ data-riser-height="400">
+1800×1200 / H400
+</button>
+
+<button class="instrumentButton riserButton"
+ data-riser-width="1800"
+ data-riser-depth="1200"
+ data-riser-height="600">
+1800×1200 / H600
+</button>
+
+
+<!-- =============================
+     自動作成
+============================= -->
+
+<h3>ひな壇自動作成</h3>
+
+<div class="subBox">
+
+<div class="info">
+後列1800×1800と前列1800×1200を、指定枚数で中央揃えして一括作成します。
+</div>
+
+<label>
+後列 1800×1800 の枚数
+<select id="autoBackCount">
+  <option value="0">なし</option>
+  <option value="1">1枚</option>
+  <option value="2">2枚</option>
+  <option value="3">3枚</option>
+  <option value="4" selected>4枚</option>
+  <option value="5">5枚</option>
+  <option value="6">6枚</option>
+  <option value="7">7枚</option>
+</select>
+</label>
+
+<label>
+後列の高さ
+<select id="autoBackHeight">
+  <option value="200">H200</option>
+  <option value="400" selected>H400</option>
+  <option value="600">H600</option>
+</select>
+</label>
+
+<label>
+前列 1800×1200 の枚数
+<select id="autoFrontCount">
+  <option value="0">なし</option>
+  <option value="1">1枚</option>
+  <option value="2">2枚</option>
+  <option value="3">3枚</option>
+  <option value="4" selected>4枚</option>
+  <option value="5">5枚</option>
+  <option value="6">6枚</option>
+  <option value="7">7枚</option>
+</select>
+</label>
+
+<label>
+前列の高さ
+<select id="autoFrontHeight">
+  <option value="200" selected>H200</option>
+  <option value="400">H400</option>
+  <option value="600">H600</option>
+</select>
+</label>
+
+<label>
+後列の舞台奥からの位置 mm
+<input id="autoBackY" type="number" value="300">
+</label>
+
+<label>
+列間のすき間 mm
+<input id="autoRowGap" type="number" value="0">
+</label>
+
+<button class="success full" id="autoRiserButton">
+ひな壇を自動作成
+</button>
+
+<button class="danger full" id="deleteRisersButton">
+ひな壇だけ全部削除
+</button>
+
+<div class="smallNote">
+例：後列4枚なら幅7200mm。前列も4枚なら幅7200mmです。
+</div>
+
+</div>
+
+
+<h3>その他</h3>
+
+<button class="instrumentButton" data-add="conductor">
+指揮者
+</button>
+
+<button class="instrumentButton" id="customItemButton">
+＋ 自由追加
+</button>
+
+</aside>
+
+
+<!-- =============================
+     舞台
+============================= -->
+
+<main class="workspace">
+
+<div class="stageHolder">
+
+<div id="stage">
+
+  <div id="backgroundLayer">
+    <img id="backgroundImage" alt="">
+  </div>
+
+  <div class="stageLabel stageBack">舞台奥</div>
+  <div class="stageLabel stageFront">客席</div>
+
+</div>
+
+</div>
+
+</main>
+
+
+<!-- =============================
+     右
+============================= -->
+
+<aside class="panel rightPanel">
+
+<h2>選択中のオブジェクト</h2>
+
+<div id="noSelection" class="info">
+舞台上の楽器・ひな壇をクリックしてください。
+
+<br><br>
+
+<strong>操作</strong><br>
+ドラッグ：移動<br>
+青い丸：回転<br>
+矢印キー：50mm移動<br>
+Shift＋矢印：300mm移動<br>
+Delete：削除
+</div>
+
+
+<div id="editor" style="display:none;">
+
+<label>
+表記
+<input id="nameInput" type="text">
+</label>
+
+<div class="row">
+
+<label>
+幅 mm
+<input id="widthInput" type="number">
+</label>
+
+<label>
+奥行 mm
+<input id="depthInput" type="number">
+</label>
+
+</div>
+
+<label>
+回転角度 °
+<input id="rotationInput" type="number" step="1">
+</label>
+
+<div id="riserEditor" style="display:none;">
+
+<label>
+ひな壇高さ mm
+<input id="riserHeightInput" type="number" step="50">
+</label>
+
+</div>
+
+<div class="actions">
+
+<button class="primary" id="applyEditorButton">変更</button>
+<button class="secondary" id="rotate90Button">90°回転</button>
+<button class="secondary" id="duplicateButton">複製</button>
+<button class="danger" id="deleteButton">削除</button>
+
+</div>
+
+<button class="warning full" id="lockButton" style="display:none;">
+🔒 ひな壇をロック
+</button>
+
+<div id="status" class="status"></div>
+
+</div>
+
+
+<h3>移動設定</h3>
+
+<label>
+移動吸着
+<select id="snapInput">
+  <option value="0">吸着なし</option>
+  <option value="50" selected>50mm</option>
+  <option value="100">100mm</option>
+  <option value="300">300mm</option>
+  <option value="600">600mm</option>
+</select>
+</label>
+
+<button class="secondary full" id="unlockAllButton">
+ひな壇をすべてロック解除
+</button>
+
+
+<h3>背景図面</h3>
+
+<div class="info">
+写真を読み込み、全体・横・縦を別々に伸縮できます。
+</div>
+
+<label>
+背景画像
+<input id="backgroundFile" type="file" accept="image/*">
+</label>
+
+
+<div id="backgroundControls" class="subBox" style="display:none;">
+
+<label>
+透明度
+<span id="opacityValue" class="valueLabel">35%</span>
+<input id="backgroundOpacity" type="range" min="0" max="1" step="0.01" value="0.35">
+</label>
+
+<label>
+全体拡大縮小
+<span id="scaleValue" class="valueLabel">100%</span>
+<input id="backgroundScale" type="range" min="0.5" max="3" step="0.01" value="1">
+</label>
+
+<label>
+横方向の伸縮
+<span id="scaleXValue" class="valueLabel">100%</span>
+<input id="backgroundScaleX" type="range" min="0.5" max="2" step="0.01" value="1">
+</label>
+
+<label>
+縦方向の伸縮
+<span id="scaleYValue" class="valueLabel">100%</span>
+<input id="backgroundScaleY" type="range" min="0.5" max="2" step="0.01" value="1">
+</label>
+
+<label>
+左右位置
+<span id="backgroundXValue" class="valueLabel">0%</span>
+<input id="backgroundX" type="range" min="-100" max="100" step="0.5" value="0">
+</label>
+
+<label>
+上下位置
+<span id="backgroundYValue" class="valueLabel">0%</span>
+<input id="backgroundY" type="range" min="-100" max="100" step="0.5" value="0">
+</label>
+
+<h3 style="margin-top:12px;">トリミング</h3>
+
+<div class="row">
+
+<label>
+上
+<input id="cropTop" type="number" min="0" max="45" step="0.5" value="0">
+</label>
+
+<label>
+下
+<input id="cropBottom" type="number" min="0" max="45" step="0.5" value="0">
+</label>
+
+<label>
+左
+<input id="cropLeft" type="number" min="0" max="45" step="0.5" value="0">
+</label>
+
+<label>
+右
+<input id="cropRight" type="number" min="0" max="45" step="0.5" value="0">
+</label>
+
+</div>
+
+<div class="actions">
+
+<button class="secondary" id="resetBackgroundButton">
+調整をリセット
+</button>
+
+<button class="warning" id="backgroundLockButton">
+🔒 背景を固定
+</button>
+
+</div>
+
+<button class="danger full" id="clearBackgroundButton">
+背景画像を消す
+</button>
+
+</div>
+
+
+<h3>保存</h3>
+
+<button class="primary full" id="saveButton">
+ブラウザに保存
+</button>
+
+<button class="secondary full" id="loadButton">
+保存配置を読み込む
+</button>
+
+<button class="secondary full" id="exportButton">
+JSON書き出し
+</button>
+
+<label>
+JSON読み込み
+<input id="importFile" type="file" accept=".json,application/json">
+</label>
+
+<button class="danger full" id="clearAllButton">
+楽器・ひな壇を全部消す
+</button>
+
+<div class="smallNote">
+初期状態は空です。ひな壇自動作成を押したときだけひな壇が配置されます。
+</div>
+
+</aside>
+
+</div>
+
+
+<script>
+"use strict";
+
+
+/* =============================
+   DOM
+============================= */
+
+const stage =
+  document.getElementById("stage");
+
+const backgroundImage =
+  document.getElementById("backgroundImage");
+
+const backgroundControls =
+  document.getElementById("backgroundControls");
+
+
+/* =============================
+   状態
+============================= */
+
+let stageWidthMM = 12600;
+let stageDepthMM = 7200;
+
+let items = [];
+
+let nextId = 1;
+let selectedId = null;
+
+
+const dragState = {
+  mode:null,
+  id:null,
+  pointerId:null,
+  startClientX:0,
+  startClientY:0,
+  startX:0,
+  startY:0
+};
+
+
+const backgroundState = {
+  dataUrl:"",
+  opacity:0.35,
+  scale:1,
+  scaleX:1,
+  scaleY:1,
+  x:0,
+  y:0,
+  cropTop:0,
+  cropRight:0,
+  cropBottom:0,
+  cropLeft:0,
+  locked:false
+};
+
+
+/* =============================
+   プリセット
+============================= */
+
+const presets = {
+
+  flute:{
+    name:"Fl",
+    className:"woodwind",
+    width:600,
+    depth:600
+  },
+
+  clarinet:{
+    name:"Cl",
+    className:"woodwind",
+    width:600,
+    depth:600
+  },
+
+  altoClarinet:{
+    name:"A.Cl",
+    className:"woodwind",
+    width:600,
+    depth:600
+  },
+
+  bassClarinet:{
+    name:"B.Cl",
+    className:"woodwind",
+    width:650,
+    depth:650
+  },
+
+  oboe:{
+    name:"Ob",
+    className:"woodwind",
+    width:600,
+    depth:600
+  },
+
+  bassoon:{
+    name:"Fg",
+    className:"woodwind",
+    width:650,
+    depth:650
+  },
+
+  altoSax:{
+    name:"A.Sax",
+    className:"woodwind",
+    width:650,
+    depth:650
+  },
+
+  tenorSax:{
+    name:"T.Sax",
+    className:"woodwind",
+    width:650,
+    depth:650
+  },
+
+  baritoneSax:{
+    name:"B.Sax",
+    className:"woodwind",
+    width:700,
+    depth:700
+  },
+
+  trumpet:{
+    name:"Tp",
+    className:"brass",
+    width:600,
+    depth:600
+  },
+
+  horn:{
+    name:"Hr",
+    className:"brass",
+    width:600,
+    depth:600
+  },
+
+  trombone:{
+    name:"Tb",
+    className:"brass",
+    width:600,
+    depth:600
+  },
+
+  euphonium:{
+    name:"Euph",
+    className:"brass",
+    width:650,
+    depth:600
+  },
+
+  tuba:{
+    name:"Tub",
+    className:"brass",
+    width:650,
+    depth:650
+  },
+
+  drumset:{
+    name:"Drum Set",
+    className:"percussion drumset",
+    width:2100,
+    depth:1450
+  },
+
+  xylophone:{
+    name:"Xylophone",
+    className:"percussion keyboardPerc",
+    width:2000,
+    depth:700
+  },
+
+  vibraphone:{
+    name:"Vibraphone",
+    className:"percussion keyboardPerc",
+    width:1850,
+    depth:750
+  },
+
+  marimba:{
+    name:"Marimba",
+    className:"percussion keyboardPerc",
+    width:2200,
+    depth:800
+  },
+
+  glockenspiel:{
+    name:"Glock",
+    className:"percussion keyboardPerc",
+    width:1200,
+    depth:600
+  },
+
+  chime:{
+    name:"Chime",
+    className:"percussion chime",
+    width:1350,
+    depth:750
+  },
+
+  bassDrum:{
+    name:"B.D.",
+    className:"percussion bassDrum",
+    width:900,
+    depth:700
+  },
+
+  cymbal:{
+    name:"Cym",
+    className:"percussion circlePerc",
+    width:600,
+    depth:600
+  },
+
+  bongo:{
+    name:"Bong",
+    className:"percussion doubleCircle",
+    width:900,
+    depth:520
+  },
+
+  conga:{
+    name:"Cong",
+    className:"percussion doubleCircle",
+    width:900,
+    depth:700
+  },
+
+  timbales:{
+    name:"Timb",
+    className:"percussion doubleCircle",
+    width:1200,
+    depth:650
+  },
+
+  snare:{
+    name:"S.D.",
+    className:"percussion circlePerc",
+    width:600,
+    depth:600
+  },
+
+  suspendCymbal:{
+    name:"S.C",
+    className:"percussion circlePerc",
+    width:600,
+    depth:600
+  },
+
+  stand:{
+    name:"Stand",
+    className:"percussion stand",
+    width:630,
+    depth:490
+  },
+
+  piano:{
+    name:"Piano",
+    className:"piano",
+    width:1500,
+    depth:2000
+  },
+
+  conductor:{
+    name:"Conductor",
+    className:"conductor",
+    width:1400,
+    depth:850
+  }
+
+};
+
+
+/* =============================
+   スケール
+============================= */
+
+function getScale(){
+  return stage.clientWidth / stageWidthMM;
+}
+
+
+/* =============================
+   舞台設定
+============================= */
+
+function applyStageSettings(){
+
+  const width =
+    Number(document.getElementById("stageWidthInput").value);
+
+  const depth =
+    Number(document.getElementById("stageDepthInput").value);
+
+
+  if(
+    !Number.isFinite(width) ||
+    !Number.isFinite(depth) ||
+    width <= 0 ||
+    depth <= 0
+  ){
+    alert("舞台寸法を正しく入力してください。");
+    return;
+  }
+
+
+  stageWidthMM = width;
+  stageDepthMM = depth;
+
+
+  const displayWidth = 1000;
+
+  const displayHeight =
+    displayWidth *
+    stageDepthMM /
+    stageWidthMM;
+
+
+  stage.style.width =
+    displayWidth + "px";
+
+  stage.style.height =
+    displayHeight + "px";
+
+
+  updateGrid();
+
+  keepAllInsideStage();
+
+  render();
+}
+
+
+/* =============================
+   グリッド
+============================= */
+
+function updateGrid(){
+
+  const gridMM =
+    Number(document.getElementById("gridInput").value);
+
+  const gridPX =
+    gridMM * getScale();
+
+  stage.style.setProperty(
+    "--grid-size",
+    gridPX + "px"
+  );
+}
+
+
+/* =============================
+   作成
+============================= */
+
+function createItem(
+  name,
+  className,
+  width,
+  depth,
+  extra={}
+){
+
+  const item = {
+
+    id:nextId++,
+
+    type:
+      extra.type ||
+      "instrument",
+
+    name,
+
+    className,
+
+    width,
+
+    depth,
+
+    x:
+      extra.x !== undefined
+      ? extra.x
+      : stageWidthMM/2 - width/2,
+
+    y:
+      extra.y !== undefined
+      ? extra.y
+      : stageDepthMM/2 - depth/2,
+
+    rotation:
+      extra.rotation || 0,
+
+    locked:
+      extra.locked || false,
+
+    riserHeight:
+      extra.riserHeight || 0
+  };
+
+
+  items.push(item);
+
+  selectedId =
+    item.id;
+
+  render();
+
+  showEditor();
+
+  return item;
+}
+
+
+/* =============================
+   楽器追加
+============================= */
+
+function addPreset(key){
+
+  const preset =
+    presets[key];
+
+  if(!preset){
+    return;
+  }
+
+  createItem(
+    preset.name,
+    preset.className,
+    preset.width,
+    preset.depth
+  );
+}
+
+
+/* =============================
+   ひな壇
+============================= */
+
+function getRiserClass(height){
+
+  if(height >= 600){
+    return "riser height600";
+  }
+
+  if(height >= 400){
+    return "riser height400";
+  }
+
+  return "riser height200";
+}
+
+
+function addRiser(
+  width,
+  depth,
+  riserHeight,
+  x,
+  y
+){
+
+  return createItem(
+
+    "ひな壇 H" + riserHeight,
+
+    getRiserClass(riserHeight),
+
+    width,
+
+    depth,
+
+    {
+      type:"riser",
+      riserHeight,
+      x,
+      y
+    }
+
+  );
+}
+
+
+/* =============================
+   ひな壇自動作成
+============================= */
+
+function autoCreateRisers(){
+
+  const backCount =
+    Number(
+      document
+      .getElementById("autoBackCount")
+      .value
+    );
+
+  const frontCount =
+    Number(
+      document
+      .getElementById("autoFrontCount")
+      .value
+    );
+
+  const backHeight =
+    Number(
+      document
+      .getElementById("autoBackHeight")
+      .value
+    );
+
+  const frontHeight =
+    Number(
+      document
+      .getElementById("autoFrontHeight")
+      .value
+    );
+
+  const backY =
+    Number(
+      document
+      .getElementById("autoBackY")
+      .value
+    );
+
+  const gap =
+    Number(
+      document
+      .getElementById("autoRowGap")
+      .value
+    );
+
+
+  if(
+    !Number.isFinite(backY) ||
+    !Number.isFinite(gap)
+  ){
+    alert("ひな壇位置を確認してください。");
+    return;
+  }
+
+
+  /*
+    後列幅
+  */
+
+  const backTotalWidth =
+    backCount * 1800;
+
+
+  /*
+    前列幅
+  */
+
+  const frontTotalWidth =
+    frontCount * 1800;
+
+
+  if(
+    backTotalWidth >
+    stageWidthMM
+  ){
+    alert("後列のひな壇が舞台幅を超えています。");
+    return;
+  }
+
+
+  if(
+    frontTotalWidth >
+    stageWidthMM
+  ){
+    alert("前列のひな壇が舞台幅を超えています。");
+    return;
+  }
+
+
+  const frontY =
+    backY +
+    (backCount > 0 ? 1800 : 0) +
+    gap;
+
+
+  if(
+    frontCount > 0 &&
+    frontY + 1200 >
+    stageDepthMM
+  ){
+    alert("前列のひな壇が舞台奥行を超えています。");
+    return;
+  }
+
+
+  if(
+    backCount > 0 &&
+    backY + 1800 >
+    stageDepthMM
+  ){
+    alert("後列のひな壇が舞台奥行を超えています。");
+    return;
+  }
+
+
+  /*
+    中央揃え
+  */
+
+  const backStartX =
+    (
+      stageWidthMM -
+      backTotalWidth
+    ) / 2;
+
+
+  const frontStartX =
+    (
+      stageWidthMM -
+      frontTotalWidth
+    ) / 2;
+
+
+  /*
+    後列
+  */
+
+  for(
+    let i=0;
+    i<backCount;
+    i++
+  ){
+
+    addRiser(
+      1800,
+      1800,
+      backHeight,
+      backStartX + i*1800,
+      backY
+    );
+
+  }
+
+
+  /*
+    前列
+  */
+
+  for(
+    let i=0;
+    i<frontCount;
+    i++
+  ){
+
+    addRiser(
+      1800,
+      1200,
+      frontHeight,
+      frontStartX + i*1800,
+      frontY
+    );
+
+  }
+
+
+  selectedId = null;
+
+  render();
+
+  showEditor();
+}
+
+
+/* =============================
+   ひな壇だけ削除
+============================= */
+
+function deleteAllRisers(){
+
+  const hasRiser =
+    items.some(
+      item =>
+        item.type === "riser"
+    );
+
+
+  if(!hasRiser){
+    alert("ひな壇は配置されていません。");
+    return;
+  }
+
+
+  if(
+    !confirm(
+      "ひな壇だけをすべて削除しますか？\n楽器は残ります。"
+    )
+  ){
+    return;
+  }
+
+
+  items =
+    items.filter(
+      item =>
+        item.type !== "riser"
+    );
+
+
+  selectedId = null;
+
+  render();
+
+  showEditor();
+}
+
+
+/* =============================
+   ティンパニ
+============================= */
+
+function addTimpaniSet(){
+
+  const baseX =
+    stageWidthMM/2 - 1700;
+
+  const baseY =
+    stageDepthMM/2 - 1400;
+
+
+  const timpani = [
+    {dx:0,dy:650,diameter:900},
+    {dx:700,dy:0,diameter:1150},
+    {dx:1700,dy:550,diameter:1100},
+    {dx:800,dy:1200,diameter:1000}
+  ];
+
+
+  timpani.forEach(
+    data => {
+
+      items.push({
+
+        id:nextId++,
+
+        type:"instrument",
+
+        name:"Timp.",
+
+        className:
+          "percussion timpani",
+
+        width:
+          data.diameter,
+
+        depth:
+          data.diameter,
+
+        x:
+          baseX + data.dx,
+
+        y:
+          baseY + data.dy,
+
+        rotation:0,
+
+        locked:false,
+
+        riserHeight:0
+      });
+
+    }
+  );
+
+
+  render();
+}
+
+
+/* =============================
+   自由追加
+============================= */
+
+function addCustomItem(){
+
+  const name =
+    prompt(
+      "表記を入力してください。",
+      "Item"
+    );
+
+  if(!name){
+    return;
+  }
+
+  createItem(
+    name,
+    "percussion",
+    1000,
+    700
+  );
+}
+
+
+/* =============================
+   描画
+============================= */
+
+function render(){
+
+  stage
+  .querySelectorAll(".stageItem")
+  .forEach(
+    element =>
+      element.remove()
+  );
+
+
+  const scale =
+    getScale();
+
+
+  const sortedItems = [
+
+    ...items.filter(
+      item =>
+        item.type === "riser"
+    ),
+
+    ...items.filter(
+      item =>
+        item.type !== "riser"
+    )
+
+  ];
+
+
+  sortedItems.forEach(
+    item => {
+
+      const element =
+        document.createElement("div");
+
+
+      element.className =
+        "stageItem " +
+        item.className;
+
+
+      if(item.locked){
+        element.classList.add("locked");
+      }
+
+
+      if(
+        item.id ===
+        selectedId
+      ){
+        element.classList.add("selected");
+      }
+
+
+      element.dataset.id =
+        String(item.id);
+
+
+      element.style.left =
+        item.x * scale + "px";
+
+      element.style.top =
+        item.y * scale + "px";
+
+      element.style.width =
+        item.width * scale + "px";
+
+      element.style.height =
+        item.depth * scale + "px";
+
+      element.style.transform =
+        "rotate(" +
+        item.rotation +
+        "deg)";
+
+
+      const body =
+        document.createElement("div");
+
+      body.className =
+        "itemBody";
+
+
+      const label =
+        document.createElement("div");
+
+      label.className =
+        "itemLabel";
+
+      label.textContent =
+        item.name;
+
+
+      body.appendChild(label);
+
+      element.appendChild(body);
+
+
+      if(
+        item.type === "riser" &&
+        item.locked
+      ){
+
+        const lock =
+          document.createElement("div");
+
+        lock.className =
+          "lockMark";
+
+        lock.textContent =
+          "🔒";
+
+        element.appendChild(lock);
+      }
+
+
+      const line =
+        document.createElement("div");
+
+      line.className =
+        "rotateLine";
+
+
+      const handle =
+        document.createElement("div");
+
+      handle.className =
+        "rotateHandle";
+
+      handle.dataset.rotateId =
+        String(item.id);
+
+
+      element.appendChild(line);
+
+      element.appendChild(handle);
+
+      stage.appendChild(element);
+    }
+  );
+}
+
+
+/* =============================
+   取得
+============================= */
+
+function getItem(id){
+  return items.find(
+    item =>
+      item.id === id
+  );
+}
+
+
+function getSelectedItem(){
+  return getItem(selectedId);
+}
+
+
+/* =============================
+   選択
+============================= */
+
+function updateSelectionVisuals(){
+
+  stage
+  .querySelectorAll(".stageItem")
+  .forEach(
+    element => {
+
+      const id =
+        Number(element.dataset.id);
+
+      element.classList.toggle(
+        "selected",
+        id === selectedId
+      );
+    }
+  );
+}
+
+
+/* =============================
+   Pointer
+============================= */
+
+stage.addEventListener(
+  "pointerdown",
+  event => {
+
+    const rotateHandle =
+      event.target.closest(
+        ".rotateHandle"
+      );
+
+
+    if(rotateHandle){
+
+      const id =
+        Number(
+          rotateHandle
+          .dataset
+          .rotateId
+        );
+
+      const item =
+        getItem(id);
+
+
+      if(
+        !item ||
+        item.locked
+      ){
+        return;
+      }
+
+
+      selectedId = id;
+
+      updateSelectionVisuals();
+
+      showEditor();
+
+
+      dragState.mode =
+        "rotate";
+
+      dragState.id =
+        id;
+
+      dragState.pointerId =
+        event.pointerId;
+
+
+      stage.setPointerCapture(
+        event.pointerId
+      );
+
+
+      event.preventDefault();
+
+      return;
+    }
+
+
+    const element =
+      event.target.closest(
+        ".stageItem"
+      );
+
+
+    if(element){
+
+      const id =
+        Number(
+          element.dataset.id
+        );
+
+      const item =
+        getItem(id);
+
+
+      if(!item){
+        return;
+      }
+
+
+      selectedId =
+        id;
+
+
+      updateSelectionVisuals();
+
+      showEditor();
+
+
+      if(item.locked){
+        event.preventDefault();
+        return;
+      }
+
+
+      dragState.mode =
+        "move";
+
+      dragState.id =
+        id;
+
+      dragState.pointerId =
+        event.pointerId;
+
+      dragState.startClientX =
+        event.clientX;
+
+      dragState.startClientY =
+        event.clientY;
+
+      dragState.startX =
+        item.x;
+
+      dragState.startY =
+        item.y;
+
+
+      stage.setPointerCapture(
+        event.pointerId
+      );
+
+
+      event.preventDefault();
+
+      return;
+    }
+
+
+    selectedId =
+      null;
+
+    updateSelectionVisuals();
+
+    showEditor();
+  }
+);
+
+
+stage.addEventListener(
+  "pointermove",
+  event => {
+
+    if(
+      dragState.mode === null
+    ){
+      return;
+    }
+
+
+    if(
+      event.pointerId !==
+      dragState.pointerId
+    ){
+      return;
+    }
+
+
+    const item =
+      getItem(
+        dragState.id
+      );
+
+
+    if(
+      !item ||
+      item.locked
+    ){
+      return;
+    }
+
+
+    if(
+      dragState.mode === "move"
+    ){
+
+      moveItemByPointer(
+        item,
+        event
+      );
+    }
+
+    else if(
+      dragState.mode === "rotate"
+    ){
+
+      rotateItemByPointer(
+        item,
+        event
+      );
+    }
+
+
+    event.preventDefault();
+  }
+);
+
+
+stage.addEventListener(
+  "pointerup",
+  finishPointer
+);
+
+stage.addEventListener(
+  "pointercancel",
+  finishPointer
+);
+
+
+function finishPointer(){
+
+  dragState.mode = null;
+  dragState.id = null;
+  dragState.pointerId = null;
+}
+
+
+/* =============================
+   移動
+============================= */
+
+function moveItemByPointer(
+  item,
+  event
+){
+
+  const scale =
+    getScale();
+
+
+  const dx =
+    (
+      event.clientX -
+      dragState.startClientX
+    ) /
+    scale;
+
+
+  const dy =
+    (
+      event.clientY -
+      dragState.startClientY
+    ) /
+    scale;
+
+
+  let x =
+    dragState.startX + dx;
+
+  let y =
+    dragState.startY + dy;
+
+
+  const snap =
+    Number(
+      document
+      .getElementById("snapInput")
+      .value
+    );
+
+
+  if(snap > 0){
+
+    x =
+      Math.round(x/snap) *
+      snap;
+
+    y =
+      Math.round(y/snap) *
+      snap;
+  }
+
+
+  item.x = x;
+  item.y = y;
+
+
+  keepItemInsideStage(item);
+
+  updateItemElement(item);
+
+  updateStatus(item);
+}
+
+
+/* =============================
+   回転
+============================= */
+
+function rotateItemByPointer(
+  item,
+  event
+){
+
+  const element =
+    stage.querySelector(
+      '.stageItem[data-id="' +
+      item.id +
+      '"]'
+    );
+
+
+  if(!element){
+    return;
+  }
+
+
+  const rect =
+    element.getBoundingClientRect();
+
+
+  const centerX =
+    rect.left +
+    rect.width/2;
+
+  const centerY =
+    rect.top +
+    rect.height/2;
+
+
+  let angle =
+    Math.atan2(
+      event.clientY-centerY,
+      event.clientX-centerX
+    ) *
+    180 /
+    Math.PI +
+    90;
+
+
+  angle =
+    Math.round(angle/5) *
+    5;
+
+
+  item.rotation =
+    normalizeAngle(angle);
+
+
+  element.style.transform =
+    "rotate(" +
+    item.rotation +
+    "deg)";
+
+
+  document
+  .getElementById("rotationInput")
+  .value =
+    item.rotation;
+
+
+  updateStatus(item);
+}
+
+
+function normalizeAngle(angle){
+
+  let result =
+    angle % 360;
+
+
+  if(result > 180){
+    result -= 360;
+  }
+
+  if(result <= -180){
+    result += 360;
+  }
+
+
+  return result;
+}
+
+
+/* =============================
+   DOM位置
+============================= */
+
+function updateItemElement(item){
+
+  const element =
+    stage.querySelector(
+      '.stageItem[data-id="' +
+      item.id +
+      '"]'
+    );
+
+
+  if(!element){
+    return;
+  }
+
+
+  const scale =
+    getScale();
+
+
+  element.style.left =
+    item.x*scale +
+    "px";
+
+  element.style.top =
+    item.y*scale +
+    "px";
+}
+
+
+/* =============================
+   エディタ
+============================= */
+
+function showEditor(){
+
+  const item =
+    getSelectedItem();
+
+
+  const editor =
+    document.getElementById("editor");
+
+  const noSelection =
+    document.getElementById("noSelection");
+
+
+  if(!item){
+
+    editor.style.display =
+      "none";
+
+    noSelection.style.display =
+      "block";
+
+    return;
+  }
+
+
+  editor.style.display =
+    "block";
+
+  noSelection.style.display =
+    "none";
+
+
+  document.getElementById("nameInput").value =
+    item.name;
+
+  document.getElementById("widthInput").value =
+    Math.round(item.width);
+
+  document.getElementById("depthInput").value =
+    Math.round(item.depth);
+
+  document.getElementById("rotationInput").value =
+    Math.round(item.rotation);
+
+
+  const riserEditor =
+    document.getElementById("riserEditor");
+
+  const lockButton =
+    document.getElementById("lockButton");
+
+
+  if(
+    item.type === "riser"
+  ){
+
+    riserEditor.style.display =
+      "block";
+
+    lockButton.style.display =
+      "block";
+
+
+    document
+    .getElementById("riserHeightInput")
+    .value =
+      item.riserHeight;
+
+
+    lockButton.textContent =
+      item.locked
+      ? "🔓 ひな壇ロック解除"
+      : "🔒 ひな壇をロック";
+  }
+
+  else{
+
+    riserEditor.style.display =
+      "none";
+
+    lockButton.style.display =
+      "none";
+  }
+
+
+  updateStatus(item);
+}
+
+
+/* =============================
+   ステータス
+============================= */
+
+function updateStatus(item){
+
+  let text =
+
+    "X: " +
+    Math.round(item.x) +
+    " mm\n" +
+
+    "Y: " +
+    Math.round(item.y) +
+    " mm\n" +
+
+    "幅: " +
+    Math.round(item.width) +
+    " mm\n" +
+
+    "奥行: " +
+    Math.round(item.depth) +
+    " mm\n" +
+
+    "回転: " +
+    Math.round(item.rotation) +
+    "°";
+
+
+  if(
+    item.type === "riser"
+  ){
+
+    text +=
+      "\n高さ: " +
+      item.riserHeight +
+      " mm";
+
+    text +=
+      item.locked
+      ? "\n🔒 ロック中"
+      : "\n🔓 移動可能";
+  }
+
+
+  document
+  .getElementById("status")
+  .textContent =
+    text;
+}
+
+
+/* =============================
+   変更
+============================= */
+
+function applyEditor(){
+
+  const item =
+    getSelectedItem();
+
+
+  if(!item){
+    return;
+  }
+
+
+  const name =
+    document
+    .getElementById("nameInput")
+    .value
+    .trim();
+
+
+  const width =
+    Number(
+      document
+      .getElementById("widthInput")
+      .value
+    );
+
+
+  const depth =
+    Number(
+      document
+      .getElementById("depthInput")
+      .value
+    );
+
+
+  const rotation =
+    Number(
+      document
+      .getElementById("rotationInput")
+      .value
+    );
+
+
+  if(
+    !name ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(depth) ||
+    !Number.isFinite(rotation) ||
+    width <= 0 ||
+    depth <= 0
+  ){
+
+    alert(
+      "入力値を確認してください。"
+    );
+
+    return;
+  }
+
+
+  item.name = name;
+  item.width = width;
+  item.depth = depth;
+
+  item.rotation =
+    normalizeAngle(rotation);
+
+
+  if(
+    item.type === "riser"
+  ){
+
+    const riserHeight =
+      Number(
+        document
+        .getElementById("riserHeightInput")
+        .value
+      );
+
+
+    if(
+      !Number.isFinite(riserHeight) ||
+      riserHeight < 0
+    ){
+      alert(
+        "ひな壇高さを確認してください。"
+      );
+      return;
+    }
+
+
+    item.riserHeight =
+      riserHeight;
+
+    item.className =
+      getRiserClass(riserHeight);
+  }
+
+
+  keepItemInsideStage(item);
+
+  render();
+
+  showEditor();
+}
+
+
+/* =============================
+   回転90
+============================= */
+
+function rotate90(){
+
+  const item =
+    getSelectedItem();
+
+
+  if(
+    !item ||
+    item.locked
+  ){
+    return;
+  }
+
+
+  item.rotation =
+    normalizeAngle(
+      item.rotation + 90
+    );
+
+
+  render();
+
+  showEditor();
+}
+
+
+/* =============================
+   複製
+============================= */
+
+function duplicateSelected(){
+
+  const item =
+    getSelectedItem();
+
+  if(!item){
+    return;
+  }
+
+
+  const copy = {
+
+    ...item,
+
+    id:nextId++,
+
+    x:item.x+300,
+
+    y:item.y+300,
+
+    locked:false
+  };
+
+
+  keepItemInsideStage(copy);
+
+  items.push(copy);
+
+  selectedId =
+    copy.id;
+
+  render();
+
+  showEditor();
+}
+
+
+/* =============================
+   削除
+============================= */
+
+function deleteSelected(){
+
+  if(
+    selectedId === null
+  ){
+    return;
+  }
+
+
+  items =
+    items.filter(
+      item =>
+        item.id !==
+        selectedId
+    );
+
+
+  selectedId = null;
+
+  render();
+
+  showEditor();
+}
+
+
+/* =============================
+   ロック
+============================= */
+
+function toggleRiserLock(){
+
+  const item =
+    getSelectedItem();
+
+
+  if(
+    !item ||
+    item.type !== "riser"
+  ){
+    return;
+  }
+
+
+  item.locked =
+    !item.locked;
+
+
+  render();
+
+  showEditor();
+}
+
+
+function unlockAllRisers(){
+
+  items.forEach(
+    item => {
+
+      if(
+        item.type === "riser"
+      ){
+        item.locked = false;
+      }
+
+    }
+  );
+
+
+  render();
+
+  showEditor();
+}
+
+
+/* =============================
+   舞台内
+============================= */
+
+function keepItemInsideStage(item){
+
+  item.x =
+    Math.max(
+      0,
+      Math.min(
+        stageWidthMM-item.width,
+        item.x
+      )
+    );
+
+
+  item.y =
+    Math.max(
+      0,
+      Math.min(
+        stageDepthMM-item.depth,
+        item.y
+      )
+    );
+}
+
+
+function keepAllInsideStage(){
+  items.forEach(keepItemInsideStage);
+}
+
+
+/* =============================
+   キーボード
+============================= */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLSelectElement
+    ){
+      return;
+    }
+
+
+    const item =
+      getSelectedItem();
+
+
+    if(!item){
+      return;
+    }
+
+
+    if(
+      event.key === "Delete" ||
+      event.key === "Backspace"
+    ){
+
+      deleteSelected();
+
+      event.preventDefault();
+
+      return;
+    }
+
+
+    if(item.locked){
+      return;
+    }
+
+
+    const step =
+      event.shiftKey
+      ? 300
+      : 50;
+
+
+    let moved =
+      true;
+
+
+    switch(event.key){
+
+      case "ArrowLeft":
+        item.x -= step;
+        break;
+
+      case "ArrowRight":
+        item.x += step;
+        break;
+
+      case "ArrowUp":
+        item.y -= step;
+        break;
+
+      case "ArrowDown":
+        item.y += step;
+        break;
+
+      default:
+        moved = false;
+    }
+
+
+    if(!moved){
+      return;
+    }
+
+
+    keepItemInsideStage(item);
+
+    render();
+
+    showEditor();
+
+    event.preventDefault();
+  }
+);
+
+
+/* =============================
+   背景
+============================= */
+
+function loadBackground(file){
+
+  if(!file){
+    return;
+  }
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload =
+    event => {
+
+      backgroundState.dataUrl =
+        event.target.result;
+
+      backgroundImage.src =
+        backgroundState.dataUrl;
+
+      backgroundControls.style.display =
+        "block";
+
+      resetBackgroundAdjustment();
+    };
+
+
+  reader.readAsDataURL(file);
+}
+
+
+function applyBackground(){
+
+  backgroundImage.style.opacity =
+    backgroundState.opacity;
+
+
+  backgroundImage.style.transform =
+    "translate(" +
+    backgroundState.x +
+    "%," +
+    backgroundState.y +
+    "%) scale(" +
+    (
+      backgroundState.scale *
+      backgroundState.scaleX
+    ) +
+    "," +
+    (
+      backgroundState.scale *
+      backgroundState.scaleY
+    ) +
+    ")";
+
+
+  backgroundImage.style.clipPath =
+    "inset(" +
+    backgroundState.cropTop +
+    "% " +
+    backgroundState.cropRight +
+    "% " +
+    backgroundState.cropBottom +
+    "% " +
+    backgroundState.cropLeft +
+    "%)";
+
+
+  document.getElementById("opacityValue").textContent =
+    Math.round(backgroundState.opacity*100)+"%";
+
+  document.getElementById("scaleValue").textContent =
+    Math.round(backgroundState.scale*100)+"%";
+
+  document.getElementById("scaleXValue").textContent =
+    Math.round(backgroundState.scaleX*100)+"%";
+
+  document.getElementById("scaleYValue").textContent =
+    Math.round(backgroundState.scaleY*100)+"%";
+
+  document.getElementById("backgroundXValue").textContent =
+    backgroundState.x+"%";
+
+  document.getElementById("backgroundYValue").textContent =
+    backgroundState.y+"%";
+}
+
+
+function resetBackgroundAdjustment(){
+
+  backgroundState.opacity = 0.35;
+  backgroundState.scale = 1;
+  backgroundState.scaleX = 1;
+  backgroundState.scaleY = 1;
+  backgroundState.x = 0;
+  backgroundState.y = 0;
+  backgroundState.cropTop = 0;
+  backgroundState.cropRight = 0;
+  backgroundState.cropBottom = 0;
+  backgroundState.cropLeft = 0;
+
+  syncBackgroundControls();
+
+  applyBackground();
+}
+
+
+function syncBackgroundControls(){
+
+  document.getElementById("backgroundOpacity").value =
+    backgroundState.opacity;
+
+  document.getElementById("backgroundScale").value =
+    backgroundState.scale;
+
+  document.getElementById("backgroundScaleX").value =
+    backgroundState.scaleX;
+
+  document.getElementById("backgroundScaleY").value =
+    backgroundState.scaleY;
+
+  document.getElementById("backgroundX").value =
+    backgroundState.x;
+
+  document.getElementById("backgroundY").value =
+    backgroundState.y;
+
+  document.getElementById("cropTop").value =
+    backgroundState.cropTop;
+
+  document.getElementById("cropRight").value =
+    backgroundState.cropRight;
+
+  document.getElementById("cropBottom").value =
+    backgroundState.cropBottom;
+
+  document.getElementById("cropLeft").value =
+    backgroundState.cropLeft;
+
+  updateBackgroundLockUI();
+}
+
+
+function toggleBackgroundLock(){
+
+  backgroundState.locked =
+    !backgroundState.locked;
+
+  updateBackgroundLockUI();
+}
+
+
+function updateBackgroundLockUI(){
+
+  const ids = [
+    "backgroundOpacity",
+    "backgroundScale",
+    "backgroundScaleX",
+    "backgroundScaleY",
+    "backgroundX",
+    "backgroundY",
+    "cropTop",
+    "cropRight",
+    "cropBottom",
+    "cropLeft",
+    "resetBackgroundButton"
+  ];
+
+
+  ids.forEach(
+    id => {
+
+      document
+      .getElementById(id)
+      .disabled =
+        backgroundState.locked;
+
+    }
+  );
+
+
+  document
+  .getElementById("backgroundLockButton")
+  .textContent =
+    backgroundState.locked
+    ? "🔓 背景固定を解除"
+    : "🔒 背景を固定";
+}
+
+
+function clearBackground(){
+
+  backgroundState.dataUrl = "";
+
+  backgroundImage.src = "";
+
+  backgroundControls.style.display =
+    "none";
+}
+
+
+/* =============================
+   保存
+============================= */
+
+function getSaveData(){
+
+  return {
+
+    version:7,
+
+    stageWidthMM,
+    stageDepthMM,
+
+    gridMM:
+      Number(
+        document
+        .getElementById("gridInput")
+        .value
+      ),
+
+    snapMM:
+      Number(
+        document
+        .getElementById("snapInput")
+        .value
+      ),
+
+    items,
+
+    background:{
+      ...backgroundState
+    }
+  };
+}
+
+
+function saveLayout(){
+
+  try{
+
+    localStorage.setItem(
+      "windBandStageLayoutV7",
+      JSON.stringify(
+        getSaveData()
+      )
+    );
+
+    alert("配置を保存しました。");
+
+  }
+  catch(error){
+
+    alert(
+      "保存できませんでした。\n背景画像が大きすぎる可能性があります。"
+    );
+  }
+}
+
+
+function loadLayout(){
+
+  const text =
+    localStorage.getItem(
+      "windBandStageLayoutV7"
+    );
+
+
+  if(!text){
+    alert(
+      "保存された配置がありません。"
+    );
+    return;
+  }
+
+
+  try{
+    applySaveData(
+      JSON.parse(text)
+    );
+  }
+  catch(error){
+    alert(
+      "保存データを読み込めませんでした。"
+    );
+  }
+}
+
+
+function applySaveData(data){
+
+  stageWidthMM =
+    Number(data.stageWidthMM) ||
+    12600;
+
+  stageDepthMM =
+    Number(data.stageDepthMM) ||
+    7200;
+
+
+  items =
+    Array.isArray(data.items)
+    ? data.items
+    : [];
+
+
+  nextId =
+    Math.max(
+      0,
+      ...items.map(
+        item =>
+          Number(item.id) || 0
+      )
+    ) + 1;
+
+
+  selectedId = null;
+
+
+  document.getElementById("stageWidthInput").value =
+    stageWidthMM;
+
+  document.getElementById("stageDepthInput").value =
+    stageDepthMM;
+
+
+  if(data.gridMM){
+    document.getElementById("gridInput").value =
+      String(data.gridMM);
+  }
+
+
+  if(
+    data.snapMM !== undefined
+  ){
+    document.getElementById("snapInput").value =
+      String(data.snapMM);
+  }
+
+
+  if(data.background){
+
+    Object.assign(
+      backgroundState,
+      data.background
+    );
+
+
+    if(
+      backgroundState.scaleX === undefined
+    ){
+      backgroundState.scaleX = 1;
+    }
+
+    if(
+      backgroundState.scaleY === undefined
+    ){
+      backgroundState.scaleY = 1;
+    }
+
+
+    if(
+      backgroundState.dataUrl
+    ){
+
+      backgroundImage.src =
+        backgroundState.dataUrl;
+
+      backgroundControls.style.display =
+        "block";
+
+      syncBackgroundControls();
+
+      applyBackground();
+
+    }
+    else{
+
+      backgroundImage.src = "";
+
+      backgroundControls.style.display =
+        "none";
+    }
+  }
+
+
+  applyStageSettings();
+
+  showEditor();
+}
+
+
+function exportJSON(){
+
+  const json =
+    JSON.stringify(
+      getSaveData(),
+      null,
+      2
+    );
+
+
+  const blob =
+    new Blob(
+      [json],
+      {
+        type:"application/json"
+      }
+    );
+
+
+  const url =
+    URL.createObjectURL(blob);
+
+
+  const anchor =
+    document.createElement("a");
+
+
+  anchor.href =
+    url;
+
+  anchor.download =
+    "stage-layout.json";
+
+
+  document.body.appendChild(anchor);
+
+  anchor.click();
+
+  anchor.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+
+function importJSON(file){
+
+  if(!file){
+    return;
+  }
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload =
+    event => {
+
+      try{
+
+        const data =
+          JSON.parse(
+            event.target.result
+          );
+
+        applySaveData(data);
+
+      }
+      catch(error){
+
+        alert(
+          "JSONファイルを読み込めませんでした。"
+        );
+      }
+    };
+
+
+  reader.readAsText(file);
+}
+
+
+/* =============================
+   全削除
+============================= */
+
+function clearAll(){
+
+  if(
+    !confirm(
+      "楽器とひな壇をすべて削除しますか？\n背景画像は残ります。"
+    )
+  ){
+    return;
+  }
+
+
+  items = [];
+
+  selectedId = null;
+
+  render();
+
+  showEditor();
+}
+
+
+/* =============================
+   イベント
+============================= */
+
+document
+.querySelectorAll("[data-add]")
+.forEach(
+  button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+        addPreset(
+          button.dataset.add
+        );
+      }
+    );
+
+  }
+);
+
+
+document
+.querySelectorAll("[data-riser-width]")
+.forEach(
+  button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        addRiser(
+          Number(button.dataset.riserWidth),
+          Number(button.dataset.riserDepth),
+          Number(button.dataset.riserHeight)
+        );
+
+      }
+    );
+
+  }
+);
+
+
+document
+.getElementById("autoRiserButton")
+.addEventListener(
+  "click",
+  autoCreateRisers
+);
+
+
+document
+.getElementById("deleteRisersButton")
+.addEventListener(
+  "click",
+  deleteAllRisers
+);
+
+
+document
+.getElementById("addTimpaniSet")
+.addEventListener(
+  "click",
+  addTimpaniSet
+);
+
+
+document
+.getElementById("customItemButton")
+.addEventListener(
+  "click",
+  addCustomItem
+);
+
+
+document
+.getElementById("applyStageButton")
+.addEventListener(
+  "click",
+  applyStageSettings
+);
+
+
+document
+.getElementById("gridInput")
+.addEventListener(
+  "change",
+  updateGrid
+);
+
+
+document
+.getElementById("applyEditorButton")
+.addEventListener(
+  "click",
+  applyEditor
+);
+
+
+document
+.getElementById("rotate90Button")
+.addEventListener(
+  "click",
+  rotate90
+);
+
+
+document
+.getElementById("duplicateButton")
+.addEventListener(
+  "click",
+  duplicateSelected
+);
+
+
+document
+.getElementById("deleteButton")
+.addEventListener(
+  "click",
+  deleteSelected
+);
+
+
+document
+.getElementById("lockButton")
+.addEventListener(
+  "click",
+  toggleRiserLock
+);
+
+
+document
+.getElementById("unlockAllButton")
+.addEventListener(
+  "click",
+  unlockAllRisers
+);
+
+
+/* 背景 */
+
+document
+.getElementById("backgroundFile")
+.addEventListener(
+  "change",
+  event => {
+
+    loadBackground(
+      event.target.files[0]
+    );
+
+  }
+);
+
+
+document
+.getElementById("backgroundOpacity")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.opacity =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("backgroundScale")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.scale =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("backgroundScaleX")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.scaleX =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("backgroundScaleY")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.scaleY =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("backgroundX")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.x =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("backgroundY")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.y =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("cropTop")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.cropTop =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("cropBottom")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.cropBottom =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("cropLeft")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.cropLeft =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("cropRight")
+.addEventListener(
+  "input",
+  event => {
+
+    backgroundState.cropRight =
+      Number(event.target.value);
+
+    applyBackground();
+
+  }
+);
+
+
+document
+.getElementById("resetBackgroundButton")
+.addEventListener(
+  "click",
+  resetBackgroundAdjustment
+);
+
+
+document
+.getElementById("backgroundLockButton")
+.addEventListener(
+  "click",
+  toggleBackgroundLock
+);
+
+
+document
+.getElementById("clearBackgroundButton")
+.addEventListener(
+  "click",
+  clearBackground
+);
+
+
+/* 保存 */
+
+document
+.getElementById("saveButton")
+.addEventListener(
+  "click",
+  saveLayout
+);
+
+
+document
+.getElementById("loadButton")
+.addEventListener(
+  "click",
+  loadLayout
+);
+
+
+document
+.getElementById("exportButton")
+.addEventListener(
+  "click",
+  exportJSON
+);
+
+
+document
+.getElementById("importFile")
+.addEventListener(
+  "change",
+  event => {
+
+    importJSON(
+      event.target.files[0]
+    );
+
+    event.target.value = "";
+  }
+);
+
+
+document
+.getElementById("clearAllButton")
+.addEventListener(
+  "click",
+  clearAll
+);
+
+
+/* =============================
+   起動
+============================= */
+
+applyStageSettings();
+
+render();
+
+showEditor();
+
+</script>
+
+</body>
+</html>
