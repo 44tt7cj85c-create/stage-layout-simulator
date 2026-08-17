@@ -501,18 +501,132 @@ input[type="range"]{padding:0}
   display:none;
 }
 
+
+/* =============================
+   表示倍率・スマホ操作
+============================= */
+
+.viewControls{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:nowrap;
+}
+
+.viewControls button{
+  min-width:38px;
+  height:34px;
+  padding:0 10px;
+  border:1px solid rgba(255,255,255,.25);
+  color:white;
+  background:#35404c;
+}
+
+.viewControls button:hover{
+  background:#465463;
+}
+
+#viewScaleLabel{
+  min-width:54px;
+  text-align:center;
+  font-size:12px;
+  font-weight:700;
+}
+
+.stageHolder{
+  transform-origin:top left;
+}
+
+#stage{
+  transform-origin:top left;
+  will-change:transform;
+}
+
+.mobileHint{
+  display:none;
+}
+
+
 @media(max-width:950px){
-  .app{grid-template-columns:185px 1fr}
+  header{
+    height:auto;
+    min-height:58px;
+    padding:8px 10px;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  header h1{
+    font-size:15px;
+  }
+
+  .headerHelp{
+    display:none;
+  }
+
+  .viewControls{
+    width:100%;
+    margin-left:0;
+    justify-content:center;
+  }
+
+  .app{
+    grid-template-columns:160px 1fr;
+    height:calc(100vh - 104px);
+  }
+
+  .leftPanel{
+    padding:9px;
+  }
+
+  .workspace{
+    padding:12px;
+    overscroll-behavior:contain;
+  }
+
+  .stageHolder{
+    justify-content:flex-start;
+    align-items:flex-start;
+  }
 
   .rightPanel{
     position:fixed;
     right:0;
     bottom:0;
-    width:280px;
-    max-height:60vh;
+    width:min(300px,82vw);
+    max-height:58vh;
     z-index:999;
     border-top:1px solid #bbb;
     box-shadow:0 0 18px rgba(0,0,0,.28);
+  }
+
+  .mobileHint{
+    display:block;
+    width:100%;
+    margin-top:2px;
+    color:#c7d0da;
+    font-size:10px;
+    text-align:center;
+  }
+}
+
+@media(max-width:560px){
+  .app{
+    grid-template-columns:132px 1fr;
+  }
+
+  .instrumentButton{
+    padding:7px 5px;
+    font-size:11px;
+  }
+
+  .panel h2{
+    font-size:13px;
+  }
+
+  .panel h3{
+    font-size:11px;
   }
 }
 </style>
@@ -525,6 +639,18 @@ input[type="range"]{padding:0}
   <h1>🎺 吹奏楽 ステージ配置シミュレーター</h1>
   <div class="headerHelp">
     初期舞台 12600×7200mm ／ 1マス1800mm
+  </div>
+
+  <div class="viewControls" aria-label="表示倍率">
+    <button id="zoomOutButton" type="button" title="縮小">−</button>
+    <span id="viewScaleLabel">100%</span>
+    <button id="zoomInButton" type="button" title="拡大">＋</button>
+    <button id="zoomResetButton" type="button" title="100%に戻す">100%</button>
+    <button id="fullScreenButton" type="button" title="全画面表示">⛶</button>
+  </div>
+
+  <div class="mobileHint">
+    1本指：楽器移動 ／ 2本指：ピンチ拡大縮小・表示位置移動
   </div>
 </header>
 
@@ -1016,6 +1142,15 @@ const backgroundImage =
 const backgroundControls =
   document.getElementById("backgroundControls");
 
+const workspace =
+  document.querySelector(".workspace");
+
+const stageHolder =
+  document.querySelector(".stageHolder");
+
+const viewScaleLabel =
+  document.getElementById("viewScaleLabel");
+
 
 /* =============================
    状態
@@ -1055,6 +1190,224 @@ const backgroundState = {
   cropLeft:0,
   locked:false
 };
+
+
+/* =============================
+   表示倍率
+============================= */
+
+let viewScale = 1;
+
+const VIEW_SCALE_MIN = 0.40;
+const VIEW_SCALE_MAX = 2.50;
+
+const pinchState = {
+  active:false,
+  startDistance:0,
+  startScale:1,
+  startMidX:0,
+  startMidY:0,
+  startScrollLeft:0,
+  startScrollTop:0
+};
+
+
+function clampViewScale(value){
+  return Math.min(
+    VIEW_SCALE_MAX,
+    Math.max(VIEW_SCALE_MIN,value)
+  );
+}
+
+
+function applyViewScale(value){
+  viewScale =
+    clampViewScale(value);
+
+  stage.style.transform =
+    "scale(" + viewScale + ")";
+
+  if(viewScaleLabel){
+    viewScaleLabel.textContent =
+      Math.round(viewScale*100) + "%";
+  }
+
+  /*
+    transform は見た目だけを拡大縮小するため、
+    スクロール領域も倍率に合わせて確保する。
+  */
+  const stageWidth =
+    stage.offsetWidth * viewScale;
+
+  const stageHeight =
+    stage.offsetHeight * viewScale;
+
+  stageHolder.style.minWidth =
+    Math.max(
+      320,
+      stageWidth + 60
+    ) + "px";
+
+  stageHolder.style.minHeight =
+    Math.max(
+      240,
+      stageHeight + 60
+    ) + "px";
+}
+
+
+function zoomView(delta){
+  applyViewScale(
+    viewScale + delta
+  );
+}
+
+
+function resetViewScale(){
+  applyViewScale(1);
+}
+
+
+function getTouchDistance(touchA,touchB){
+  return Math.hypot(
+    touchB.clientX-touchA.clientX,
+    touchB.clientY-touchA.clientY
+  );
+}
+
+
+function getTouchMidpoint(touchA,touchB){
+  return {
+    x:(touchA.clientX+touchB.clientX)/2,
+    y:(touchA.clientY+touchB.clientY)/2
+  };
+}
+
+
+function startPinch(touches){
+  if(touches.length < 2){
+    return;
+  }
+
+  const touchA = touches[0];
+  const touchB = touches[1];
+
+  const midpoint =
+    getTouchMidpoint(touchA,touchB);
+
+  pinchState.active = true;
+
+  pinchState.startDistance =
+    getTouchDistance(touchA,touchB);
+
+  pinchState.startScale =
+    viewScale;
+
+  pinchState.startMidX =
+    midpoint.x;
+
+  pinchState.startMidY =
+    midpoint.y;
+
+  pinchState.startScrollLeft =
+    workspace.scrollLeft;
+
+  pinchState.startScrollTop =
+    workspace.scrollTop;
+
+  /*
+    1本目のタッチで楽器移動が始まっていても、
+    2本指になった時点で表示操作へ切り替える。
+  */
+  finishPointer();
+}
+
+
+function updatePinch(touches){
+  if(
+    !pinchState.active ||
+    touches.length < 2
+  ){
+    return;
+  }
+
+  const touchA = touches[0];
+  const touchB = touches[1];
+
+  const distance =
+    getTouchDistance(touchA,touchB);
+
+  if(
+    pinchState.startDistance <= 0
+  ){
+    return;
+  }
+
+  const midpoint =
+    getTouchMidpoint(touchA,touchB);
+
+  const nextScale =
+    pinchState.startScale *
+    distance /
+    pinchState.startDistance;
+
+  applyViewScale(nextScale);
+
+  /*
+    2本指の中心移動で舞台表示位置も移動。
+  */
+  workspace.scrollLeft =
+    pinchState.startScrollLeft -
+    (
+      midpoint.x -
+      pinchState.startMidX
+    );
+
+  workspace.scrollTop =
+    pinchState.startScrollTop -
+    (
+      midpoint.y -
+      pinchState.startMidY
+    );
+}
+
+
+async function toggleFullScreen(){
+
+  try{
+
+    if(document.fullscreenElement){
+      await document.exitFullscreen();
+      return;
+    }
+
+    const target =
+      document.documentElement;
+
+    if(target.requestFullscreen){
+      await target.requestFullscreen();
+      return;
+    }
+
+  }
+  catch(error){
+    console.warn(
+      "Fullscreen API unavailable:",
+      error
+    );
+  }
+
+  /*
+    Googleサイト内や一部iPhoneでは
+    全画面APIが使えない場合があるため、
+    アプリ単体を新しいタブで開く。
+  */
+  window.open(
+    window.location.href,
+    "_blank"
+  );
+}
+
 
 
 /* =============================
@@ -3759,6 +4112,93 @@ document
 );
 
 
+
+/* 表示倍率 */
+
+document
+.getElementById("zoomOutButton")
+.addEventListener(
+  "click",
+  () => zoomView(-0.10)
+);
+
+document
+.getElementById("zoomInButton")
+.addEventListener(
+  "click",
+  () => zoomView(0.10)
+);
+
+document
+.getElementById("zoomResetButton")
+.addEventListener(
+  "click",
+  resetViewScale
+);
+
+document
+.getElementById("fullScreenButton")
+.addEventListener(
+  "click",
+  toggleFullScreen
+);
+
+
+/*
+  スマホ・タブレット
+  2本指ピンチ：拡大縮小
+  2本指移動：舞台表示位置を移動
+*/
+workspace.addEventListener(
+  "touchstart",
+  event => {
+
+    if(event.touches.length === 2){
+      startPinch(event.touches);
+      event.preventDefault();
+    }
+
+  },
+  {passive:false}
+);
+
+workspace.addEventListener(
+  "touchmove",
+  event => {
+
+    if(
+      pinchState.active &&
+      event.touches.length >= 2
+    ){
+      updatePinch(event.touches);
+      event.preventDefault();
+    }
+
+  },
+  {passive:false}
+);
+
+workspace.addEventListener(
+  "touchend",
+  event => {
+
+    if(event.touches.length < 2){
+      pinchState.active = false;
+    }
+
+  },
+  {passive:false}
+);
+
+workspace.addEventListener(
+  "touchcancel",
+  () => {
+    pinchState.active = false;
+  },
+  {passive:false}
+);
+
+
 /* 保存 */
 
 document
@@ -3813,6 +4253,8 @@ document
 ============================= */
 
 applyStageSettings();
+
+applyViewScale(1);
 
 render();
 
