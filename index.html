@@ -2,7 +2,13 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ステージ配置">
+<meta name="mobile-web-app-capable" content="yes">
+
 <title>吹奏楽 ステージ配置シミュレーター</title>
 
 <style>
@@ -841,6 +847,36 @@ input[type="range"]{padding:0}
     min-width:0 !important;
     margin-left:auto !important;
     margin-right:auto !important;
+  }
+}
+
+
+/* =============================
+   横画面スマホ：舞台を画面中央へ
+============================= */
+@media(max-width:1200px) and (orientation:landscape){
+
+  .workspace{
+    display:block !important;
+    position:absolute !important;
+    inset:0 !important;
+  }
+
+  .stageHolder{
+    width:100% !important;
+    min-width:100% !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+    margin:0 !important;
+    padding:8px 0 78px !important;
+  }
+
+  #stage{
+    flex:0 0 auto !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    transform-origin:top center !important;
   }
 }
 
@@ -4904,6 +4940,24 @@ function fitStageToMobile(){
       workspace.scrollLeft = 0;
       workspace.scrollTop = 0;
 
+      if(
+        window.matchMedia(
+          "(orientation:landscape)"
+        ).matches
+      ){
+        stageHolder.style.width = "100%";
+        stageHolder.style.minWidth = "100%";
+        stageHolder.style.display = "flex";
+        stageHolder.style.justifyContent = "center";
+
+        stage.style.transformOrigin =
+          "top center";
+
+        workspace.scrollLeft = 0;
+      }
+
+
+
       const fitButton =
         document.getElementById(
           "mobileFitButton"
@@ -4938,6 +4992,23 @@ function fitStageToMobile(){
 }
 
 
+
+function centerStageInLandscape(){
+  if(
+    isMobileLayout() &&
+    window.matchMedia(
+      "(orientation:landscape)"
+    ).matches
+  ){
+    stageHolder.style.width = "100%";
+    stageHolder.style.minWidth = "100%";
+    stageHolder.style.display = "flex";
+    stageHolder.style.justifyContent = "center";
+    stage.style.transformOrigin = "top center";
+    workspace.scrollLeft = 0;
+  }
+}
+
 function refreshMobileLayout(){
   closeMobilePanels();
 
@@ -4947,6 +5018,7 @@ function refreshMobileLayout(){
         requestAnimationFrame(
           () => {
             fitStageToMobile();
+            centerStageInLandscape();
 
             if(
               window.matchMedia(
