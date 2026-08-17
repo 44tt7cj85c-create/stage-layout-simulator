@@ -761,85 +761,60 @@ input[type="range"]{padding:0}
 
 
 /* =============================
-   俯瞰モード
+   俯瞰モード（専用オーバーレイ）
 ============================= */
 
-.overviewExitButton{
+.overviewLayer{
   display:none;
-}
-
-body.overview-mode{
+  position:fixed;
+  inset:0;
+  z-index:500000;
+  width:100vw;
+  height:100vh;
   overflow:hidden;
-  background:#faf7ed;
+  background:#111;
 }
 
-body.overview-mode header,
-body.overview-mode .leftPanel,
-body.overview-mode .rightPanel,
-body.overview-mode .mobileDock,
-body.overview-mode .mobileShade{
-  display:none !important;
+.overviewLayer.active{
+  display:block;
 }
 
-body.overview-mode .app{
-  position:fixed !important;
-  inset:0 !important;
-  width:100vw !important;
-  height:100vh !important;
-  display:block !important;
+.overviewStageHost{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
 }
 
-body.overview-mode .workspace{
-  position:fixed !important;
-  inset:0 !important;
-  width:100vw !important;
-  height:100vh !important;
-  padding:2px !important;
-  overflow:hidden !important;
-  background:#faf7ed !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-
-body.overview-mode .stageHolder{
-  width:100% !important;
-  height:100% !important;
-  min-width:0 !important;
-  min-height:0 !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-
-body.overview-mode #stage{
+.overviewStageHost #stage{
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  margin:0 !important;
   border-width:2px !important;
   box-shadow:none !important;
+  transform-origin:center center !important;
+  touch-action:none !important;
 }
 
-body.overview-mode .stageItem{
-  cursor:default !important;
-}
-
-body.overview-mode .stageItem.selected{
+.overviewStageHost .stageItem.selected{
   outline:none !important;
 }
 
-body.overview-mode .rotateLine,
-body.overview-mode .rotateHandle{
+.overviewStageHost .rotateLine,
+.overviewStageHost .rotateHandle{
   display:none !important;
 }
 
-body.overview-mode .overviewExitButton{
-  display:block;
-  position:fixed;
+.overviewExitButton{
+  display:none;
+  position:absolute;
   right:max(12px, env(safe-area-inset-right));
   top:max(12px, env(safe-area-inset-top));
-  z-index:200000;
+  z-index:500010;
   min-width:74px;
   min-height:42px;
   padding:8px 12px;
-  border:1px solid rgba(255,255,255,.25);
+  border:1px solid rgba(255,255,255,.28);
   border-radius:10px;
   background:rgba(32,43,55,.94);
   color:white;
@@ -848,13 +823,8 @@ body.overview-mode .overviewExitButton{
   touch-action:manipulation;
 }
 
-
-body.overview-mode .stageHolder{
-  overflow:visible !important;
-}
-
-body.overview-mode #stage{
-  flex:0 0 auto;
+.overviewLayer.active .overviewExitButton{
+  display:block;
 }
 
 </style>
@@ -1357,7 +1327,11 @@ JSON読み込み
 </div>
 
 
-<button id="overviewExitButton" class="overviewExitButton" type="button">戻る</button>
+
+<div id="overviewLayer" class="overviewLayer" aria-hidden="true">
+  <div id="overviewStageHost" class="overviewStageHost"></div>
+  <button id="overviewExitButton" class="overviewExitButton" type="button">戻る</button>
+</div>
 
 <div class="mobileShade" id="mobileShade"></div>
 
@@ -4594,24 +4568,43 @@ document
 
 let overviewMode = false;
 
+const overviewLayer =
+  document.getElementById("overviewLayer");
+
+const overviewStageHost =
+  document.getElementById("overviewStageHost");
+
+let overviewPreviousScreenScale = 1;
+let overviewPreviousViewScale = 1;
+
+
+/*
+  俯瞰は専用レイヤーへ stage 自体を一時的に移動する。
+  既存の .app / .workspace / Google Sites iframe のCSS影響を受けにくい。
+*/
 function fitStageToOverview(){
-  const workspaceRect =
-    workspace.getBoundingClientRect();
+
+  if(
+    !overviewMode ||
+    !overviewLayer ||
+    !overviewStageHost
+  ){
+    return;
+  }
 
   const availableWidth =
     Math.max(
       160,
-      workspaceRect.width - 2
+      overviewLayer.clientWidth
     );
 
   const availableHeight =
     Math.max(
       120,
-      workspaceRect.height - 2
+      overviewLayer.clientHeight
     );
 
-  const baseWidth =
-    1000;
+  const baseWidth = 1000;
 
   const baseHeight =
     baseWidth *
@@ -4619,16 +4612,15 @@ function fitStageToOverview(){
     stageWidthMM;
 
   /*
-    俯瞰モードは「全体を収める」ではなく
-    「画面を埋める」cover方式。
-    縦横どちらかの余白がなくなるまで拡大し、
-    はみ出した分だけ端を少し切る。
+    cover方式：
+    余白がなくなるまで拡大。
+    縦横比が違う分だけ端が少し切れる。
   */
   const fittedScale =
     Math.max(
       0.10,
       Math.min(
-        2.5,
+        3,
         Math.max(
           availableWidth / baseWidth,
           availableHeight / baseHeight
@@ -4636,20 +4628,33 @@ function fitStageToOverview(){
       )
     );
 
-  applyViewScale(
-    fittedScale
-  );
+  viewScale =
+    fittedScale;
 
-  stageHolder.style.width = "100%";
-  stageHolder.style.height = "100%";
-  stageHolder.style.margin = "0";
-  stageHolder.style.padding = "0";
+  stage.style.transform =
+    "translate(-50%,-50%) scale(" +
+    fittedScale +
+    ")";
 
-  workspace.scrollLeft = 0;
-  workspace.scrollTop = 0;
+  if(viewScaleLabel){
+    viewScaleLabel.textContent =
+      Math.round(
+        fittedScale * 100
+      ) + "%";
+  }
 }
 
+
 function enterOverviewMode(){
+
+  if(
+    overviewMode ||
+    !overviewLayer ||
+    !overviewStageHost
+  ){
+    return;
+  }
+
   overviewMode = true;
 
   closeMobilePanels();
@@ -4658,15 +4663,43 @@ function enterOverviewMode(){
   updateSelectionVisuals();
   showEditor();
 
-  document.body.classList.add(
-    "overview-mode"
+  overviewPreviousScreenScale =
+    screenScale;
+
+  overviewPreviousViewScale =
+    viewScale;
+
+  /*
+    body transform が fixed レイヤーの座標系を変えるため、
+    俯瞰中だけ画面全体倍率を物理的に解除する。
+  */
+  document.body.style.transform = "";
+  document.body.style.transformOrigin = "";
+  document.body.style.width = "100%";
+  document.body.style.height = "100%";
+
+  screenScale = 1;
+
+  if(screenScaleLabel){
+    screenScaleLabel.textContent =
+      "100%";
+  }
+
+  overviewLayer.classList.add(
+    "active"
+  );
+
+  overviewLayer.setAttribute(
+    "aria-hidden",
+    "false"
   );
 
   /*
-    全体UI倍率は一旦100%に戻し、
-    俯瞰は舞台倍率だけで最大化する。
+    元のstageHolderから俯瞰専用ホストへ移動。
   */
-  applyScreenScale(1);
+  overviewStageHost.appendChild(
+    stage
+  );
 
   requestAnimationFrame(
     () => {
@@ -4677,17 +4710,41 @@ function enterOverviewMode(){
   );
 }
 
+
 function exitOverviewMode(){
+
+  if(!overviewMode){
+    return;
+  }
+
   overviewMode = false;
 
-  document.body.classList.remove(
-    "overview-mode"
+  /*
+    stage を元の場所へ戻す。
+  */
+  stageHolder.appendChild(
+    stage
   );
 
-  stageHolder.style.width = "";
-  stageHolder.style.height = "";
-  stageHolder.style.margin = "";
-  stageHolder.style.padding = "";
+  overviewLayer.classList.remove(
+    "active"
+  );
+
+  overviewLayer.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  /*
+    通常画面の倍率を復元。
+  */
+  applyScreenScale(
+    overviewPreviousScreenScale
+  );
+
+  applyViewScale(
+    overviewPreviousViewScale
+  );
 
   refreshMobileLayout();
 }
