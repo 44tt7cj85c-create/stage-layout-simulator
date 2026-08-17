@@ -629,6 +629,23 @@ input[type="range"]{padding:0}
     font-size:11px;
   }
 }
+
+.mobileDock,.mobileClose{display:none}
+@media(max-width:700px){
+ body{overflow:hidden}
+ header{min-height:96px}
+ .app{display:block;height:calc(100vh - 96px);position:relative}
+ .workspace{position:absolute;inset:0;padding:10px 10px 78px;overflow:auto;-webkit-overflow-scrolling:touch}
+ .leftPanel,.rightPanel{position:fixed;top:96px;bottom:66px;width:min(330px,88vw);max-height:none;z-index:1200;overflow:auto;transition:transform .22s ease;box-shadow:0 8px 28px rgba(0,0,0,.30)}
+ .leftPanel{left:0;transform:translateX(-105%)}
+ .rightPanel{right:0;transform:translateX(105%)}
+ body.mobile-left-open .leftPanel{transform:translateX(0)}
+ body.mobile-right-open .rightPanel{transform:translateX(0)}
+ .mobileClose{display:block;position:sticky;top:0;z-index:20;width:100%;margin:0 0 8px;padding:10px;border:0;border-radius:6px;font-weight:700;background:#202b37;color:white}
+ .mobileDock{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;position:fixed;left:8px;right:8px;bottom:8px;z-index:1500;padding:7px;border-radius:12px;background:rgba(32,43,55,.94);box-shadow:0 5px 20px rgba(0,0,0,.32)}
+ .mobileDock button{min-height:46px;padding:8px 6px;border:0;border-radius:8px;color:white;background:#465463;font-weight:700}
+}
+
 </style>
 </head>
 
@@ -661,7 +678,7 @@ input[type="range"]{padding:0}
      左
 ============================= -->
 
-<aside class="panel leftPanel">
+<aside class="panel leftPanel"><button class="mobileClose" id="closeLeftPanelButton" type="button">✕ 楽器一覧を閉じる</button>
 
 <h2>舞台設定</h2>
 
@@ -909,7 +926,7 @@ input[type="range"]{padding:0}
      右
 ============================= -->
 
-<aside class="panel rightPanel">
+<aside class="panel rightPanel"><button class="mobileClose" id="closeRightPanelButton" type="button">✕ 編集パネルを閉じる</button>
 
 <h2>選択中のオブジェクト</h2>
 
@@ -1765,6 +1782,8 @@ function createItem(
   render();
 
   showEditor();
+
+if(isMobileLayout()){requestAnimationFrame(()=>fitStageToMobile());}
 
   return item;
 }
@@ -4248,6 +4267,27 @@ document
 );
 
 
+
+function isMobileLayout(){return window.matchMedia("(max-width:700px)").matches;}
+function closeMobilePanels(){document.body.classList.remove("mobile-left-open","mobile-right-open");}
+function openMobilePanel(side){
+ closeMobilePanels();
+ document.body.classList.add(side==="left"?"mobile-left-open":"mobile-right-open");
+}
+function fitStageToMobile(){
+ if(!isMobileLayout())return;
+ const availableWidth=Math.max(260,workspace.clientWidth-24);
+ applyViewScale(Math.min(1,availableWidth/stage.offsetWidth));
+ workspace.scrollLeft=0; workspace.scrollTop=0;
+}
+document.getElementById("mobileInstrumentsButton").addEventListener("click",()=>openMobilePanel("left"));
+document.getElementById("mobileEditButton").addEventListener("click",()=>openMobilePanel("right"));
+document.getElementById("mobileFitButton").addEventListener("click",fitStageToMobile);
+document.getElementById("closeLeftPanelButton").addEventListener("click",closeMobilePanels);
+document.getElementById("closeRightPanelButton").addEventListener("click",closeMobilePanels);
+document.querySelectorAll(".instrumentButton").forEach(b=>b.addEventListener("click",()=>{if(isMobileLayout())setTimeout(closeMobilePanels,0);}));
+window.addEventListener("resize",()=>{if(isMobileLayout())fitStageToMobile();else closeMobilePanels();});
+
 /* =============================
    起動
 ============================= */
@@ -4261,6 +4301,13 @@ render();
 showEditor();
 
 </script>
+
+
+<div class="mobileDock">
+ <button id="mobileInstrumentsButton" type="button">🎺 楽器</button>
+ <button id="mobileFitButton" type="button">↔ 舞台全体</button>
+ <button id="mobileEditButton" type="button">✏️ 編集</button>
+</div>
 
 </body>
 </html>
