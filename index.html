@@ -631,7 +631,7 @@ input[type="range"]{padding:0}
 }
 
 .mobileDock,.mobileClose{display:none}
-@media(max-width:700px){
+@media(max-width:950px){
  body{overflow:hidden}
  header{min-height:96px}
  .app{display:block;height:calc(100vh - 96px);position:relative}
@@ -644,6 +644,90 @@ input[type="range"]{padding:0}
  .mobileClose{display:block;position:sticky;top:0;z-index:20;width:100%;margin:0 0 8px;padding:10px;border:0;border-radius:6px;font-weight:700;background:#202b37;color:white}
  .mobileDock{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;position:fixed;left:8px;right:8px;bottom:8px;z-index:1500;padding:7px;border-radius:12px;background:rgba(32,43,55,.94);box-shadow:0 5px 20px rgba(0,0,0,.32)}
  .mobileDock button{min-height:46px;padding:8px 6px;border:0;border-radius:8px;color:white;background:#465463;font-weight:700}
+}
+
+
+/* =============================
+   スマホUI v3
+============================= */
+@media(max-width:950px){
+  header{min-height:96px !important;}
+
+  .app{
+    display:block !important;
+    height:calc(100vh - 96px) !important;
+    position:relative !important;
+  }
+
+  .workspace{
+    position:absolute !important;
+    inset:0 !important;
+    padding:8px 8px 78px !important;
+    overflow:auto !important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+  }
+
+  .stageHolder{
+    justify-content:flex-start !important;
+    align-items:flex-start !important;
+  }
+
+  .leftPanel,
+  .rightPanel{
+    display:block !important;
+    position:fixed !important;
+    top:96px !important;
+    bottom:66px !important;
+    width:min(330px,88vw) !important;
+    max-height:none !important;
+    overflow-y:auto !important;
+    z-index:2000 !important;
+    background:#fff !important;
+    transition:transform .22s ease !important;
+    box-shadow:0 8px 28px rgba(0,0,0,.34) !important;
+  }
+
+  .leftPanel{
+    left:0 !important;
+    right:auto !important;
+    transform:translateX(-110%) !important;
+  }
+
+  .rightPanel{
+    right:0 !important;
+    left:auto !important;
+    border-top:0 !important;
+    transform:translateX(110%) !important;
+  }
+
+  body.mobile-left-open .leftPanel{
+    transform:translateX(0) !important;
+  }
+
+  body.mobile-right-open .rightPanel{
+    transform:translateX(0) !important;
+  }
+
+  .mobileClose{display:block !important;}
+
+  .mobileDock{
+    display:grid !important;
+    grid-template-columns:1fr 1fr 1fr;
+  }
+
+  .mobileShade{
+    display:none;
+    position:fixed;
+    inset:96px 0 66px;
+    z-index:1900;
+    background:rgba(0,0,0,.24);
+  }
+
+  body.mobile-left-open .mobileShade,
+  body.mobile-right-open .mobileShade{
+    display:block;
+  }
 }
 
 </style>
@@ -1782,8 +1866,6 @@ function createItem(
   render();
 
   showEditor();
-
-if(isMobileLayout()){requestAnimationFrame(()=>fitStageToMobile());}
 
   return item;
 }
@@ -4268,25 +4350,127 @@ document
 
 
 
-function isMobileLayout(){return window.matchMedia("(max-width:700px)").matches;}
-function closeMobilePanels(){document.body.classList.remove("mobile-left-open","mobile-right-open");}
+function isMobileLayout(){
+  return window.matchMedia("(max-width:950px)").matches;
+}
+
+function closeMobilePanels(){
+  document.body.classList.remove(
+    "mobile-left-open",
+    "mobile-right-open"
+  );
+}
+
 function openMobilePanel(side){
- closeMobilePanels();
- document.body.classList.add(side==="left"?"mobile-left-open":"mobile-right-open");
+  closeMobilePanels();
+
+  if(side === "left"){
+    document.body.classList.add("mobile-left-open");
+  }
+
+  if(side === "right"){
+    document.body.classList.add("mobile-right-open");
+  }
 }
+
 function fitStageToMobile(){
- if(!isMobileLayout())return;
- const availableWidth=Math.max(260,workspace.clientWidth-24);
- applyViewScale(Math.min(1,availableWidth/stage.offsetWidth));
- workspace.scrollLeft=0; workspace.scrollTop=0;
+  if(!isMobileLayout()){
+    return;
+  }
+
+  const availableWidth =
+    Math.max(260, workspace.clientWidth - 16);
+
+  const availableHeight =
+    Math.max(220, workspace.clientHeight - 84);
+
+  const scaleByWidth =
+    availableWidth / stage.offsetWidth;
+
+  const scaleByHeight =
+    availableHeight / stage.offsetHeight;
+
+  const fittedScale =
+    Math.min(
+      1,
+      scaleByWidth,
+      scaleByHeight
+    );
+
+  applyViewScale(fittedScale);
+
+  workspace.scrollLeft = 0;
+  workspace.scrollTop = 0;
 }
-document.getElementById("mobileInstrumentsButton").addEventListener("click",()=>openMobilePanel("left"));
-document.getElementById("mobileEditButton").addEventListener("click",()=>openMobilePanel("right"));
-document.getElementById("mobileFitButton").addEventListener("click",fitStageToMobile);
-document.getElementById("closeLeftPanelButton").addEventListener("click",closeMobilePanels);
-document.getElementById("closeRightPanelButton").addEventListener("click",closeMobilePanels);
-document.querySelectorAll(".instrumentButton").forEach(b=>b.addEventListener("click",()=>{if(isMobileLayout())setTimeout(closeMobilePanels,0);}));
-window.addEventListener("resize",()=>{if(isMobileLayout())fitStageToMobile();else closeMobilePanels();});
+
+document
+.getElementById("mobileInstrumentsButton")
+.addEventListener("click",()=>openMobilePanel("left"));
+
+document
+.getElementById("mobileEditButton")
+.addEventListener("click",()=>openMobilePanel("right"));
+
+document
+.getElementById("mobileFitButton")
+.addEventListener("click",fitStageToMobile);
+
+document
+.getElementById("closeLeftPanelButton")
+.addEventListener("click",closeMobilePanels);
+
+document
+.getElementById("closeRightPanelButton")
+.addEventListener("click",closeMobilePanels);
+
+const mobileShade =
+  document.getElementById("mobileShade");
+
+if(mobileShade){
+  mobileShade.addEventListener(
+    "click",
+    closeMobilePanels
+  );
+}
+
+document
+.querySelectorAll(".instrumentButton")
+.forEach(
+  button => {
+    button.addEventListener(
+      "click",
+      () => {
+        if(isMobileLayout()){
+          setTimeout(closeMobilePanels,0);
+        }
+      }
+    );
+  }
+);
+
+stage.addEventListener(
+  "pointerdown",
+  () => {
+    if(isMobileLayout()){
+      closeMobilePanels();
+    }
+  },
+  {capture:true}
+);
+
+window.addEventListener(
+  "resize",
+  () => {
+    if(isMobileLayout()){
+      closeMobilePanels();
+      requestAnimationFrame(fitStageToMobile);
+    }
+    else{
+      closeMobilePanels();
+      applyViewScale(1);
+    }
+  }
+);
 
 /* =============================
    起動
@@ -4300,8 +4484,19 @@ render();
 
 showEditor();
 
+if(isMobileLayout()){
+  requestAnimationFrame(
+    () => {
+      closeMobilePanels();
+      fitStageToMobile();
+    }
+  );
+}
+
 </script>
 
+
+<div class="mobileShade" id="mobileShade"></div>
 
 <div class="mobileDock">
  <button id="mobileInstrumentsButton" type="button">🎺 楽器</button>
