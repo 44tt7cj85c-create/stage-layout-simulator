@@ -1948,18 +1948,7 @@ input[type="range"]{padding:0}
 }
 
 
-/* =============================
-   iOS Safari 1ページ固定：79%縮小
-============================= */
-@media print{
 
-  .pdfSheet{
-    transform:scale(.79) !important;
-    transform-origin:top left !important;
-    left:5mm !important;
-    top:5mm !important;
-  }
-}
 
 </style>
 </head>
@@ -2495,7 +2484,7 @@ Delete：削除
 </button>
 
 <button class="secondary full" id="pdfButton">
-📄 PDF保存（A4横1枚）
+📄 PDF保存（A4横1枚・自動調整）
 </button>
 
 <div class="smallNote">
@@ -7328,8 +7317,8 @@ html,
 body{
   margin:0;
   padding:0;
-  width:280mm;
-  height:190mm;
+  width:258mm;
+  height:182mm;
   overflow:hidden;
   background:white;
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
@@ -7337,13 +7326,11 @@ body{
 
 .pdfSheet{
   position:absolute;
-  left:5mm;
-  top:5mm;
-  width:270mm;
-  height:180mm;
+  left:4mm;
+  top:4mm;
+  width:250mm;
+  height:174mm;
   display:grid;
-  transform:scale(.79);
-  transform-origin:top left;
   grid-template-rows:12mm 9mm 1fr 13mm;
   overflow:hidden;
   border:.35mm solid #555;
@@ -7353,7 +7340,7 @@ body{
 
 .pdfTop{
   display:grid;
-  grid-template-columns:48mm 1fr 28mm 42mm;
+  grid-template-columns:44mm 1fr 26mm 39mm;
   border-bottom:.3mm solid #aaa;
 }
 
@@ -7379,7 +7366,7 @@ body{
 }
 
 .pdfTitle{
-  font-size:17pt;
+  font-size:16pt;
   font-weight:800;
   line-height:1;
   letter-spacing:.04em;
@@ -7447,7 +7434,7 @@ body{
 
 .pdfFooter{
   display:grid;
-  grid-template-columns:34mm 56mm 1fr 74mm;
+  grid-template-columns:31mm 51mm 1fr 68mm;
   align-items:center;
   border-top:.3mm solid #aaa;
   font-size:8.5pt;
@@ -7483,18 +7470,16 @@ body{
 @media print{
   html,
   body{
-    width:280mm !important;
-    height:190mm !important;
-    min-width:280mm !important;
-    min-height:190mm !important;
-    max-width:280mm !important;
-    max-height:190mm !important;
+    width:258mm !important;
+    height:182mm !important;
+    min-width:258mm !important;
+    min-height:182mm !important;
+    max-width:258mm !important;
+    max-height:182mm !important;
     overflow:hidden !important;
   }
 
   .pdfSheet{
-    transform:scale(.79) !important;
-    transform-origin:top left !important;
     page-break-before:avoid !important;
     page-break-after:avoid !important;
     page-break-inside:avoid !important;
