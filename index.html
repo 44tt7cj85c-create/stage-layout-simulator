@@ -993,6 +993,207 @@ input[type="range"]{padding:0}
   }
 }
 
+
+/* =============================
+   舞台配置図スタイル（デスクトップ）
+============================= */
+
+.planTopBar,
+.planBottomBar{
+  display:none;
+}
+
+@media (min-width:1201px){
+
+  html,body{
+    background:#f1eee6;
+  }
+
+  body{
+    overflow:hidden;
+  }
+
+  header{
+    display:none;
+  }
+
+  .planTopBar{
+    display:grid;
+    grid-template-columns:260px 1fr 180px 240px;
+    align-items:stretch;
+    height:64px;
+    border-bottom:1px solid #c8c2b7;
+    background:#f7f3ea;
+    color:#111;
+  }
+
+  .planTopCell{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width:0;
+    padding:8px 12px;
+    border-right:1px solid #c8c2b7;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .planTopCell:last-child{
+    border-right:0;
+  }
+
+  .planVenue{
+    font-size:20px;
+    font-weight:600;
+  }
+
+  .planTitle{
+    font-size:34px;
+    font-weight:800;
+    letter-spacing:.08em;
+  }
+
+  .planPart{
+    font-size:20px;
+    font-weight:700;
+  }
+
+  .planDate{
+    font-size:22px;
+    font-weight:700;
+  }
+
+  .app{
+    grid-template-columns:170px 1fr 250px;
+    height:calc(100vh - 64px - 48px);
+    background:#f7f3ea;
+  }
+
+  .panel{
+    background:#f5f1e8;
+    border-color:#d6d0c5;
+  }
+
+  .leftPanel{
+    padding:10px 9px;
+  }
+
+  .rightPanel{
+    padding:10px;
+  }
+
+  .leftPanel h2,
+  .leftPanel h3,
+  .rightPanel h2,
+  .rightPanel h3{
+    margin-top:8px;
+    padding:5px 6px;
+    border:0;
+    border-radius:4px;
+    background:#e9e3d8;
+    text-align:center;
+    font-size:12px;
+  }
+
+  .leftPanel label,
+  .rightPanel label{
+    font-size:10px;
+  }
+
+  .instrumentButton{
+    margin:3px 0;
+    padding:6px 7px;
+    border-radius:4px;
+    font-size:11px;
+  }
+
+  .workspace{
+    position:relative;
+    padding:34px 34px 58px;
+    background:#faf7ef;
+  }
+
+  .stageHolder{
+    min-width:1040px;
+    min-height:640px;
+    align-items:flex-start;
+  }
+
+  #stage{
+    border:2px solid #676767;
+    background-color:#fbf8ee;
+    box-shadow:none;
+  }
+
+  .stageLabel.stageBack{
+    top:-26px;
+    color:#111;
+    font-size:16px;
+    letter-spacing:0;
+  }
+
+  .stageLabel.stageFront{
+    bottom:-52px;
+    color:#111;
+    font-size:28px;
+    letter-spacing:1.2em;
+    transform:translateX(-38%);
+  }
+
+  .itemBody{
+    box-shadow:none;
+  }
+
+  .planBottomBar{
+    display:grid;
+    grid-template-columns:220px 1fr 1fr;
+    height:48px;
+    border-top:1px solid #c8c2b7;
+    background:#f7f3ea;
+    color:#111;
+  }
+
+  .planBottomCell{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    border-right:1px solid #c8c2b7;
+    font-size:13px;
+  }
+
+  .planBottomCell:last-child{
+    border-right:0;
+  }
+
+  .planOrgBadge{
+    position:absolute;
+    right:42px;
+    bottom:10px;
+    min-width:320px;
+    padding:8px 18px;
+    border:1px dashed #777;
+    background:rgba(255,255,255,.84);
+    text-align:center;
+    font-size:16px;
+    font-weight:700;
+    z-index:50;
+  }
+
+  .printHeader{
+    display:none !important;
+  }
+}
+
+@media print{
+  .planTopBar,
+  .planBottomBar,
+  .planOrgBadge{
+    display:none !important;
+  }
+}
+
 </style>
 </head>
 
@@ -1023,6 +1224,14 @@ input[type="range"]{padding:0}
 </header>
 
 
+
+<div class="planTopBar" id="planTopBar">
+  <div class="planTopCell planVenue" id="planVenueDisplay">まほらホール舞台配置図</div>
+  <div class="planTopCell planTitle" id="planTitleDisplay">冬のコンサート</div>
+  <div class="planTopCell planPart" id="planPartDisplay">第1・2部</div>
+  <div class="planTopCell planDate" id="planDateDisplay">2026年2月9日</div>
+</div>
+
 <div class="app">
 
 <!-- =============================
@@ -1034,11 +1243,25 @@ input[type="range"]{padding:0}
 <h2>舞台設定</h2>
 
 <h3>演奏会情報</h3>
-<label>演奏会タイトル
-<input id="concertTitleInput" type="text" placeholder="例：第30回 定期演奏会">
+
+<label>会場・配置図名
+<input id="venueNameInput" type="text" value="まほらホール舞台配置図">
 </label>
+
+<label>演奏会タイトル
+<input id="concertTitleInput" type="text" value="冬のコンサート" placeholder="例：第30回 定期演奏会">
+</label>
+
+<label>部・ステージ
+<input id="concertPartInput" type="text" value="第1・2部" placeholder="例：第1部">
+</label>
+
 <label>演奏会日付
-<input id="concertDateInput" type="date">
+<input id="concertDateInput" type="date" value="2026-02-09">
+</label>
+
+<label>団体名
+<input id="organizationInput" type="text" value="岩瀬農業高等学校吹奏楽部">
 </label>
 
 <div class="row">
@@ -1285,6 +1508,8 @@ input[type="range"]{padding:0}
 
 </div>
 
+<div class="planOrgBadge" id="planOrgDisplay">岩瀬農業高等学校吹奏楽部</div>
+
 </main>
 
 
@@ -1523,6 +1748,11 @@ Delete：削除
 
 </div>
 
+<div class="planBottomBar">
+  <div class="planBottomCell">縮尺 <strong>1：30</strong></div>
+  <div class="planBottomCell">作成日 <span id="planCreatedDisplay"></span></div>
+  <div class="planBottomCell">舞台サイズ <strong id="planStageSizeDisplay">12600 mm × 7200 mm</strong></div>
+</div>
 
 
 <div id="overviewLayer" class="overviewLayer" aria-hidden="true">
@@ -2159,6 +2389,8 @@ function applyStageSettings(){
   keepAllInsideStage();
 
   render();
+
+  updatePlanHeader();
 
   if(isMobileLayout()){
     requestAnimationFrame(
@@ -4390,6 +4622,154 @@ function initializeDefaultLayout(){
    保存
 ============================= */
 
+
+function formatPlanDate(value){
+  if(!value){
+    return "";
+  }
+
+  const parts =
+    value.split("-");
+
+  if(parts.length !== 3){
+    return value;
+  }
+
+  return (
+    Number(parts[0]) + "年" +
+    Number(parts[1]) + "月" +
+    Number(parts[2]) + "日"
+  );
+}
+
+
+function updatePlanHeader(){
+
+  const venue =
+    document.getElementById("venueNameInput");
+
+  const title =
+    document.getElementById("concertTitleInput");
+
+  const part =
+    document.getElementById("concertPartInput");
+
+  const date =
+    document.getElementById("concertDateInput");
+
+  const org =
+    document.getElementById("organizationInput");
+
+  const venueDisplay =
+    document.getElementById("planVenueDisplay");
+
+  const titleDisplay =
+    document.getElementById("planTitleDisplay");
+
+  const partDisplay =
+    document.getElementById("planPartDisplay");
+
+  const dateDisplay =
+    document.getElementById("planDateDisplay");
+
+  const orgDisplay =
+    document.getElementById("planOrgDisplay");
+
+  const stageSizeDisplay =
+    document.getElementById("planStageSizeDisplay");
+
+  const createdDisplay =
+    document.getElementById("planCreatedDisplay");
+
+  if(venueDisplay){
+    venueDisplay.textContent =
+      venue && venue.value.trim()
+      ? venue.value.trim()
+      : "舞台配置図";
+  }
+
+  if(titleDisplay){
+    titleDisplay.textContent =
+      title && title.value.trim()
+      ? title.value.trim()
+      : "演奏会";
+  }
+
+  if(partDisplay){
+    partDisplay.textContent =
+      part && part.value.trim()
+      ? part.value.trim()
+      : "";
+  }
+
+  if(dateDisplay){
+    dateDisplay.textContent =
+      date
+      ? formatPlanDate(date.value)
+      : "";
+  }
+
+  if(orgDisplay){
+    orgDisplay.textContent =
+      org && org.value.trim()
+      ? org.value.trim()
+      : "";
+  }
+
+  if(stageSizeDisplay){
+    stageSizeDisplay.textContent =
+      stageWidthMM +
+      " mm × " +
+      stageDepthMM +
+      " mm";
+  }
+
+  if(createdDisplay){
+    const now =
+      new Date();
+
+    createdDisplay.textContent =
+      now.toLocaleString(
+        "ja-JP",
+        {
+          year:"numeric",
+          month:"numeric",
+          day:"numeric",
+          hour:"2-digit",
+          minute:"2-digit"
+        }
+      );
+  }
+}
+
+
+[
+  "venueNameInput",
+  "concertTitleInput",
+  "concertPartInput",
+  "concertDateInput",
+  "organizationInput"
+]
+.forEach(
+  id => {
+    const el =
+      document.getElementById(id);
+
+    if(el){
+      el.addEventListener(
+        "input",
+        updatePlanHeader
+      );
+
+      el.addEventListener(
+        "change",
+        updatePlanHeader
+      );
+    }
+  }
+);
+
+
 function getSaveData(){
 
   const concertTitleInput = document.getElementById("concertTitleInput");
@@ -5283,8 +5663,12 @@ workspace.addEventListener(
 
 function preparePrintHeader(){
 
+  const venueInput = document.getElementById("venueNameInput");
   const titleInput = document.getElementById("concertTitleInput");
+  const partInput = document.getElementById("concertPartInput");
   const dateInput = document.getElementById("concertDateInput");
+  const orgInput = document.getElementById("organizationInput");
+
   const printTitle = document.getElementById("printTitle");
   const printConcertDate = document.getElementById("printConcertDate");
   const printMeta = document.getElementById("printMeta");
@@ -5299,21 +5683,37 @@ function preparePrintHeader(){
   }
 
   if(printConcertDate){
-    if(dateInput && dateInput.value){
-      const parts = dateInput.value.split("-");
-      printConcertDate.textContent =
-        Number(parts[0]) + "年" +
-        Number(parts[1]) + "月" +
-        Number(parts[2]) + "日";
-    }else{
-      printConcertDate.textContent = "";
+    const parts = [];
+
+    if(venueInput && venueInput.value.trim()){
+      parts.push(venueInput.value.trim());
     }
+
+    if(partInput && partInput.value.trim()){
+      parts.push(partInput.value.trim());
+    }
+
+    if(dateInput && dateInput.value){
+      parts.push(formatPlanDate(dateInput.value));
+    }
+
+    printConcertDate.textContent =
+      parts.join("　");
   }
 
   if(printMeta){
+    const org =
+      orgInput && orgInput.value.trim()
+      ? orgInput.value.trim() + "　／　"
+      : "";
+
     printMeta.textContent =
-      "ステージ配置図　／　舞台サイズ：" +
-      stageWidthMM + " × " + stageDepthMM + " mm";
+      org +
+      "舞台サイズ：" +
+      stageWidthMM +
+      " × " +
+      stageDepthMM +
+      " mm";
   }
 }
 
@@ -6261,6 +6661,8 @@ applyViewScale(1);
 render();
 
 showEditor();
+
+updatePlanHeader();
 
 closeMobilePanels();
 
