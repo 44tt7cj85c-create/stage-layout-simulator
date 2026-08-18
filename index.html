@@ -880,6 +880,105 @@ input[type="range"]{padding:0}
   }
 }
 
+
+/* =============================
+   PDF / 印刷
+============================= */
+
+@media print{
+
+  @page{
+    size:A4 landscape;
+    margin:10mm;
+  }
+
+  html,
+  body{
+    width:auto !important;
+    height:auto !important;
+    overflow:visible !important;
+    background:white !important;
+  }
+
+  body{
+    transform:none !important;
+  }
+
+  header,
+  .leftPanel,
+  .rightPanel,
+  .mobileDock,
+  .mobileShade,
+  .overviewLayer,
+  .overviewExitButton{
+    display:none !important;
+  }
+
+  .app{
+    display:block !important;
+    height:auto !important;
+  }
+
+  .workspace{
+    position:static !important;
+    display:block !important;
+    overflow:visible !important;
+    padding:0 !important;
+    background:white !important;
+  }
+
+  .stageHolder{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #stage{
+    position:relative !important;
+    left:auto !important;
+    top:auto !important;
+    margin:0 auto !important;
+    transform:none !important;
+    transform-origin:top left !important;
+    box-shadow:none !important;
+    page-break-inside:avoid;
+  }
+
+  .stageItem.selected{
+    outline:none !important;
+  }
+
+  .rotateLine,
+  .rotateHandle{
+    display:none !important;
+  }
+
+  .printHeader{
+    display:block !important;
+  }
+}
+
+.printHeader{
+  display:none;
+  margin:0 0 6mm;
+  text-align:center;
+  color:#111;
+}
+
+.printHeader h1{
+  margin:0 0 2mm;
+  font-size:18pt;
+}
+
+.printHeader .meta{
+  font-size:9pt;
+}
+
 </style>
 </head>
 
@@ -1142,6 +1241,12 @@ input[type="range"]{padding:0}
 
 <main class="workspace">
 
+<div id="printHeader" class="printHeader">
+  <h1 id="printTitle">吹奏楽 ステージ配置図</h1>
+  <div class="meta" id="printMeta"></div>
+</div>
+
+
 <div class="stageHolder">
 
 <div id="stage">
@@ -1372,6 +1477,10 @@ Delete：削除
 
 <button class="secondary full" id="exportButton">
 📤 配置ファイルを書き出す
+</button>
+
+<button class="secondary full" id="pdfButton">
+📄 PDF保存
 </button>
 
 <label>
@@ -4728,6 +4837,95 @@ workspace.addEventListener(
 );
 
 
+
+function preparePrintHeader(){
+
+  const printMeta =
+    document.getElementById(
+      "printMeta"
+    );
+
+  if(printMeta){
+
+    const now =
+      new Date();
+
+    const dateText =
+      now.toLocaleDateString(
+        "ja-JP"
+      );
+
+    printMeta.textContent =
+      "舞台 " +
+      stageWidthMM +
+      " × " +
+      stageDepthMM +
+      " mm　／　" +
+      dateText;
+  }
+}
+
+
+function saveAsPDF(){
+
+  /*
+    PDF保存はブラウザ標準の印刷機能を利用。
+    iPad / PCで最も安定する。
+  */
+  preparePrintHeader();
+
+  const previousScreenScale =
+    screenScale;
+
+  const previousViewScale =
+    viewScale;
+
+  const previousTransform =
+    stage.style.transform;
+
+  const previousOrigin =
+    stage.style.transformOrigin;
+
+  /*
+    印刷時は通常倍率へ戻す。
+  */
+  applyScreenScale(1);
+  applyViewScale(1);
+
+  window.setTimeout(
+    () => {
+
+      window.print();
+
+      /*
+        印刷画面を閉じた後に元の表示倍率へ戻す。
+      */
+      window.setTimeout(
+        () => {
+          applyScreenScale(
+            previousScreenScale
+          );
+
+          applyViewScale(
+            previousViewScale
+          );
+
+          stage.style.transformOrigin =
+            previousOrigin ||
+            "top left";
+
+          if(previousTransform){
+            stage.style.transform =
+              previousTransform;
+          }
+        },
+        300
+      );
+    },
+    100
+  );
+}
+
 /* 自動保存 */
 
 const autoSaveToggle =
@@ -4827,6 +5025,13 @@ document
 .addEventListener(
   "click",
   exportJSON
+);
+
+document
+.getElementById("pdfButton")
+.addEventListener(
+  "click",
+  saveAsPDF
 );
 
 
