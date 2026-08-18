@@ -983,6 +983,16 @@ input[type="range"]{padding:0}
   font-weight:700;
 }
 
+
+/* 入力中はモバイルパネルを維持 */
+@media (max-width:950px), (max-width:1200px) and (pointer:coarse){
+  .leftPanel:focus-within,
+  .rightPanel:focus-within{
+    visibility:visible !important;
+    pointer-events:auto !important;
+  }
+}
+
 </style>
 </head>
 
@@ -6101,12 +6111,38 @@ document
 
 
 /*
-  端末回転時は必ず左右メニューを閉じてから再計算。
-  resizeだけに依存しない。
+  iPhone / iPadで入力欄をタップすると、
+  ソフトウェアキーボード表示で resize / visualViewport resize が発生する。
+  その時は左右のガジェットを閉じない。
 */
+function isEditingFormControl(){
+  const active =
+    document.activeElement;
+
+  if(!active){
+    return false;
+  }
+
+  return (
+    active.tagName === "INPUT" ||
+    active.tagName === "TEXTAREA" ||
+    active.tagName === "SELECT" ||
+    active.isContentEditable
+  );
+}
+
+
 let resizeTimer = null;
 
-function scheduleMobileRefresh(){
+function scheduleMobileRefresh(force=false){
+
+  if(
+    !force &&
+    isEditingFormControl()
+  ){
+    return;
+  }
+
   window.clearTimeout(
     resizeTimer
   );
@@ -6114,6 +6150,14 @@ function scheduleMobileRefresh(){
   resizeTimer =
     window.setTimeout(
       () => {
+
+        if(
+          !force &&
+          isEditingFormControl()
+        ){
+          return;
+        }
+
         if(overviewMode){
           fitStageToOverview();
         }
@@ -6125,23 +6169,29 @@ function scheduleMobileRefresh(){
     );
 }
 
+
 window.addEventListener(
   "resize",
-  scheduleMobileRefresh
+  () => {
+    scheduleMobileRefresh(false);
+  }
 );
+
 
 window.addEventListener(
   "orientationchange",
   () => {
+
     closeMobilePanels();
 
     const refreshAfterRotate =
       () => {
+
         if(overviewMode){
           fitStageToOverview();
         }
         else{
-          refreshMobileLayout();
+          scheduleMobileRefresh(true);
         }
       };
 
@@ -6150,10 +6200,6 @@ window.addEventListener(
       180
     );
 
-    /*
-      iPad Safariは横画面切替後に
-      visual viewport が少し遅れて確定することがある。
-    */
     window.setTimeout(
       refreshAfterRotate,
       520
@@ -6161,16 +6207,24 @@ window.addEventListener(
   }
 );
 
+
 if(window.visualViewport){
 
   window.visualViewport.addEventListener(
     "resize",
     () => {
+
+      if(
+        isEditingFormControl()
+      ){
+        return;
+      }
+
       if(overviewMode){
         fitStageToOverview();
       }
       else if(isMobileLayout()){
-        scheduleMobileRefresh();
+        scheduleMobileRefresh(false);
       }
     }
   );
@@ -6178,6 +6232,13 @@ if(window.visualViewport){
   window.visualViewport.addEventListener(
     "scroll",
     () => {
+
+      if(
+        isEditingFormControl()
+      ){
+        return;
+      }
+
       if(overviewMode){
         fitStageToOverview();
       }
