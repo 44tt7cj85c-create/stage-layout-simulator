@@ -1855,7 +1855,7 @@ input[type="range"]{padding:0}
 </label>
 
 <label>団体名
-<input id="organizationInput" type="text" value="岩瀬農業高等学校吹奏楽部">
+<input id="organizationInput" type="text" placeholder="例：〇〇高等学校吹奏楽部">
 </label>
 
 <div class="row">
@@ -2102,7 +2102,7 @@ input[type="range"]{padding:0}
 
 </div>
 
-<div class="planOrgBadge" id="planOrgDisplay">岩瀬農業高等学校吹奏楽部</div>
+<div class="planOrgBadge" id="planOrgDisplay"></div>
 
 </main>
 
@@ -2360,7 +2360,7 @@ Delete：削除
 
     <div class="overviewStageArea">
       <div id="overviewStageHost" class="overviewStageHost"></div>
-      <div class="overviewOrg" id="overviewOrgDisplay">岩瀬農業高等学校吹奏楽部</div>
+      <div class="overviewOrg" id="overviewOrgDisplay"></div>
     </div>
 
     <div class="overviewPlanBottom">
@@ -5291,8 +5291,7 @@ function updatePlanHeader(){
   const date =
     document.getElementById("concertDateInput");
 
-  const org =
-    document.getElementById("organizationInput");
+  const org = document.getElementById("organizationInput");
 
   const venueDisplay =
     document.getElementById("planVenueDisplay");
@@ -5360,8 +5359,8 @@ function updatePlanHeader(){
 
   if(orgDisplay){
     orgDisplay.textContent =
-      org
-      ? org.value.trim()
+      organizationInput
+      ? organizationInput.value.trim()
       : "";
   }
 
@@ -5423,8 +5422,8 @@ function updatePlanHeader(){
 
   if(overviewOrgDisplay){
     overviewOrgDisplay.textContent =
-      org
-      ? org.value.trim()
+      organizationInput
+      ? organizationInput.value.trim()
       : "";
   }
 
@@ -5463,7 +5462,10 @@ function updatePlanHeader(){
 
       el.addEventListener(
         "change",
-        updatePlanHeader
+        () => {
+          updatePlanHeader();
+          syncOrganizationEverywhere();
+        }
       );
 
       el.addEventListener(
@@ -6486,7 +6488,40 @@ function fitStageForPrint(){
 
 
 
+
+function syncOrganizationEverywhere(){
+
+  const input =
+    document.getElementById(
+      "organizationInput"
+    );
+
+  const value =
+    input
+    ? input.value.trim()
+    : "";
+
+  [
+    "planOrgDisplay",
+    "overviewOrgDisplay",
+    "printPlanOrg"
+  ].forEach(
+    id => {
+      const el =
+        document.getElementById(id);
+
+      if(el){
+        el.textContent = value;
+      }
+    }
+  );
+}
+
+
 function buildPrintPage(){
+
+  syncOrganizationEverywhere();
+  updatePlanHeader();
 
   const printStageHost =
     document.getElementById("printStageHost");
@@ -6626,30 +6661,44 @@ function fitPrintStage(){
     return;
   }
 
-  const hostRect =
-    host.getBoundingClientRect();
-
   const baseWidth =
-    stage.offsetWidth;
+    stage.offsetWidth || 1000;
 
   const baseHeight =
-    stage.offsetHeight;
-
-  if(
-    baseWidth <= 0 ||
-    baseHeight <= 0
-  ){
-    return;
-  }
+    stage.offsetHeight ||
+    (
+      1000 *
+      stageDepthMM /
+      stageWidthMM
+    );
 
   /*
-    印刷エリア内に必ず舞台全面が収まる contain 方式。
+    A4横の印刷専用ステージ領域。
+    CSSのmm指定に合わせて、実寸ベースで縮尺を決める。
+    1mm = 96 / 25.4 px。
   */
+  const MM_TO_PX =
+    96 / 25.4;
+
+  const printableWidthMM =
+    277 - 8;   // A4本文幅277mm - 左右4mm×2
+
+  const printableHeightMM =
+    166 - 16;  // 中央領域約166mm - 上3mm - 下13mm
+
+  const availableWidth =
+    printableWidthMM *
+    MM_TO_PX;
+
+  const availableHeight =
+    printableHeightMM *
+    MM_TO_PX;
+
   const scale =
     Math.min(
-      hostRect.width / baseWidth,
-      hostRect.height / baseHeight
-    );
+      availableWidth / baseWidth,
+      availableHeight / baseHeight
+    ) * 0.97;
 
   clone.style.transform =
     "translate(-50%,-50%) scale(" +
@@ -6660,12 +6709,16 @@ function fitPrintStage(){
 
 function saveAsPDF(){
 
+  syncOrganizationEverywhere();
   updatePlanHeader();
 
   buildPrintPage();
+  fitPrintStage();
 
   const beforePrint =
     () => {
+      syncOrganizationEverywhere();
+      updatePlanHeader();
       buildPrintPage();
 
       requestAnimationFrame(
