@@ -1350,20 +1350,32 @@ Delete：削除
 
 <h3>保存</h3>
 
+<div class="subBox">
+  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+    <input id="autoSaveToggle" type="checkbox" checked
+      style="width:auto;margin:0;">
+    自動保存を使う
+  </label>
+
+  <div id="autoSaveStatus" class="smallNote">
+    自動保存：ON
+  </div>
+</div>
+
 <button class="primary full" id="saveButton">
-ブラウザに保存
+💾 この端末に保存
 </button>
 
 <button class="secondary full" id="loadButton">
-保存配置を読み込む
+📂 この端末の保存を開く
 </button>
 
 <button class="secondary full" id="exportButton">
-JSON書き出し
+📤 配置ファイルを書き出す
 </button>
 
 <label>
-JSON読み込み
+📥 配置ファイルを読み込む
 <input id="importFile" type="file" accept=".json,application/json">
 </label>
 
@@ -3869,15 +3881,151 @@ function getSaveData(){
 }
 
 
+
+const MANUAL_SAVE_KEY =
+  "windBandStageLayoutV7";
+
+const AUTO_SAVE_KEY =
+  "windBandStageLayoutAutoV1";
+
+let autoSaveEnabled = true;
+let autoSaveTimer = null;
+let restoringAutoSave = false;
+
+function setAutoSaveStatus(message){
+  const status =
+    document.getElementById(
+      "autoSaveStatus"
+    );
+
+  if(status){
+    status.textContent = message;
+  }
+}
+
+function saveAutoLayout(){
+
+  if(
+    !autoSaveEnabled ||
+    restoringAutoSave
+  ){
+    return;
+  }
+
+  try{
+    const payload = {
+      savedAt:
+        new Date().toISOString(),
+
+      data:
+        getSaveData()
+    };
+
+    localStorage.setItem(
+      AUTO_SAVE_KEY,
+      JSON.stringify(payload)
+    );
+
+    const now =
+      new Date();
+
+    const timeText =
+      now
+      .toLocaleTimeString(
+        "ja-JP",
+        {
+          hour:"2-digit",
+          minute:"2-digit"
+        }
+      );
+
+    setAutoSaveStatus(
+      "自動保存済み：" +
+      timeText
+    );
+  }
+  catch(error){
+    setAutoSaveStatus(
+      "自動保存できませんでした（背景画像が大きい可能性があります）"
+    );
+  }
+}
+
+function scheduleAutoSave(){
+
+  if(
+    !autoSaveEnabled ||
+    restoringAutoSave
+  ){
+    return;
+  }
+
+  window.clearTimeout(
+    autoSaveTimer
+  );
+
+  autoSaveTimer =
+    window.setTimeout(
+      saveAutoLayout,
+      500
+    );
+}
+
+function restoreAutoLayout(){
+
+  const raw =
+    localStorage.getItem(
+      AUTO_SAVE_KEY
+    );
+
+  if(!raw){
+    return false;
+  }
+
+  try{
+    const payload =
+      JSON.parse(raw);
+
+    if(
+      !payload ||
+      !payload.data
+    ){
+      return false;
+    }
+
+    restoringAutoSave = true;
+
+    applySaveData(
+      payload.data
+    );
+
+    restoringAutoSave = false;
+
+    setAutoSaveStatus(
+      "前回の自動保存を復元しました"
+    );
+
+    return true;
+  }
+  catch(error){
+    restoringAutoSave = false;
+    return false;
+  }
+}
+
 function saveLayout(){
 
   try{
 
     localStorage.setItem(
-      "windBandStageLayoutV7",
+      MANUAL_SAVE_KEY,
       JSON.stringify(
         getSaveData()
       )
+    );
+
+    setAutoSaveStatus(
+      "手動保存しました"
     );
 
     alert("配置を保存しました。");
@@ -3896,7 +4044,7 @@ function loadLayout(){
 
   const text =
     localStorage.getItem(
-      "windBandStageLayoutV7"
+      MANUAL_SAVE_KEY
     );
 
 
@@ -4054,8 +4202,19 @@ function exportJSON(){
   anchor.href =
     url;
 
+  const now =
+    new Date();
+
+  const stamp =
+    now
+    .toISOString()
+    .slice(0,16)
+    .replace(/[:T]/g,"-");
+
   anchor.download =
-    "stage-layout.json";
+    "stage-layout-" +
+    stamp +
+    ".json";
 
 
   document.body.appendChild(anchor);
@@ -4090,6 +4249,7 @@ function importJSON(file){
           );
 
         applySaveData(data);
+        scheduleAutoSave();
 
       }
       catch(error){
@@ -4565,6 +4725,82 @@ workspace.addEventListener(
     pinchState.active = false;
   },
   {passive:false}
+);
+
+
+/* 自動保存 */
+
+const autoSaveToggle =
+  document.getElementById(
+    "autoSaveToggle"
+  );
+
+if(autoSaveToggle){
+
+  autoSaveEnabled =
+    autoSaveToggle.checked;
+
+  autoSaveToggle.addEventListener(
+    "change",
+    () => {
+      autoSaveEnabled =
+        autoSaveToggle.checked;
+
+      if(autoSaveEnabled){
+        setAutoSaveStatus(
+          "自動保存：ON"
+        );
+        scheduleAutoSave();
+      }
+      else{
+        setAutoSaveStatus(
+          "自動保存：OFF"
+        );
+      }
+    }
+  );
+}
+
+/*
+  入力値変更・楽器移動・各種ボタン操作をまとめて検知。
+  500msのデバウンスで保存するため、ドラッグ中に連続書込みしない。
+*/
+document.addEventListener(
+  "input",
+  scheduleAutoSave,
+  true
+);
+
+document.addEventListener(
+  "change",
+  scheduleAutoSave,
+  true
+);
+
+document.addEventListener(
+  "pointerup",
+  scheduleAutoSave,
+  true
+);
+
+document.addEventListener(
+  "touchend",
+  scheduleAutoSave,
+  true
+);
+
+document.addEventListener(
+  "click",
+  event => {
+    if(
+      event.target.closest(
+        "button"
+      )
+    ){
+      scheduleAutoSave();
+    }
+  },
+  true
 );
 
 
@@ -5319,6 +5555,20 @@ render();
 showEditor();
 
 closeMobilePanels();
+
+/*
+  同じ端末に前回の自動保存があれば復元。
+  初回利用時は空の舞台のまま。
+*/
+const restoredAutoSave =
+  restoreAutoLayout();
+
+if(
+  !restoredAutoSave &&
+  autoSaveEnabled
+){
+  scheduleAutoSave();
+}
 
 if(isMobileLayout()){
   window.setTimeout(
