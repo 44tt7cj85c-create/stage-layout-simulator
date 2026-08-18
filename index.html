@@ -570,7 +570,7 @@ input[type="range"]{padding:0}
    ※同じ要素を別ルールで重ね書きしない
 ============================= */
 
-@media(max-width:950px){
+@media (max-width:950px), (max-width:1200px) and (pointer:coarse){
 
   html,
   body{
@@ -629,7 +629,7 @@ input[type="range"]{padding:0}
   .app{
     display:block;
     position:relative;
-    height:calc(100vh - 96px);
+    height:calc(100dvh - 96px);
   }
 
   .workspace{
@@ -835,7 +835,7 @@ input[type="range"]{padding:0}
 /* =============================
    横画面スマホ：舞台中央表示
 ============================= */
-@media(max-width:950px) and (orientation:landscape){
+@media (max-width:950px) and (orientation:landscape), (max-width:1200px) and (pointer:coarse) and (orientation:landscape){
   .workspace{
     display:flex !important;
     justify-content:center !important;
@@ -880,6 +880,109 @@ input[type="range"]{padding:0}
   }
 }
 
+
+/* =============================
+   PDF / 印刷
+============================= */
+
+@media print{
+
+  @page{
+    size:A4 landscape;
+    margin:10mm;
+  }
+
+  html,
+  body{
+    width:auto !important;
+    height:auto !important;
+    overflow:visible !important;
+    background:white !important;
+  }
+
+  body{
+    transform:none !important;
+  }
+
+  header,
+  .leftPanel,
+  .rightPanel,
+  .mobileDock,
+  .mobileShade,
+  .overviewLayer,
+  .overviewExitButton{
+    display:none !important;
+  }
+
+  .app{
+    display:block !important;
+    height:auto !important;
+  }
+
+  .workspace{
+    position:static !important;
+    display:block !important;
+    overflow:visible !important;
+    padding:0 !important;
+    background:white !important;
+  }
+
+  .stageHolder{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #stage{
+    position:relative !important;
+    left:auto !important;
+    top:auto !important;
+    margin:0 auto !important;
+    transform:none !important;
+    transform-origin:top left !important;
+    box-shadow:none !important;
+    page-break-inside:avoid;
+  }
+
+  .stageItem.selected{
+    outline:none !important;
+  }
+
+  .rotateLine,
+  .rotateHandle{
+    display:none !important;
+  }
+
+  .printHeader{
+    display:block !important;
+  }
+}
+
+.printHeader{
+  display:none;
+  margin:0 0 6mm;
+  text-align:center;
+  color:#111;
+}
+
+.printHeader h1{
+  margin:0 0 2mm;
+  font-size:18pt;
+}
+
+.printHeader .meta{
+  margin-top:1.5mm;
+  font-size:10pt;
+}
+#printConcertDate{
+  font-weight:700;
+}
+
 </style>
 </head>
 
@@ -919,6 +1022,14 @@ input[type="range"]{padding:0}
 <aside class="panel leftPanel"><button class="mobileClose" id="closeLeftPanelButton" type="button">✕ 楽器一覧を閉じる</button>
 
 <h2>舞台設定</h2>
+
+<h3>演奏会情報</h3>
+<label>演奏会タイトル
+<input id="concertTitleInput" type="text" placeholder="例：第30回 定期演奏会">
+</label>
+<label>演奏会日付
+<input id="concertDateInput" type="date">
+</label>
 
 <div class="row">
 <label>
@@ -1142,6 +1253,13 @@ input[type="range"]{padding:0}
 
 <main class="workspace">
 
+<div id="printHeader" class="printHeader">
+  <h1 id="printTitle">吹奏楽 ステージ配置図</h1>
+  <div class="meta" id="printConcertDate"></div>
+  <div class="meta" id="printMeta"></div>
+</div>
+
+
 <div class="stageHolder">
 
 <div id="stage">
@@ -1350,20 +1468,36 @@ Delete：削除
 
 <h3>保存</h3>
 
+<div class="subBox">
+  <label style="display:flex;align-items:center;gap:8px;margin-top:0;">
+    <input id="autoSaveToggle" type="checkbox" checked
+      style="width:auto;margin:0;">
+    自動保存を使う
+  </label>
+
+  <div id="autoSaveStatus" class="smallNote">
+    自動保存：ON
+  </div>
+</div>
+
 <button class="primary full" id="saveButton">
-ブラウザに保存
+💾 この端末に保存
 </button>
 
 <button class="secondary full" id="loadButton">
-保存配置を読み込む
+📂 この端末の保存を開く
 </button>
 
 <button class="secondary full" id="exportButton">
-JSON書き出し
+📤 配置ファイルを書き出す
+</button>
+
+<button class="secondary full" id="pdfButton">
+📄 PDF保存
 </button>
 
 <label>
-JSON読み込み
+📥 配置ファイルを読み込む
 <input id="importFile" type="file" accept=".json,application/json">
 </label>
 
@@ -3839,7 +3973,12 @@ function clearBackground(){
 
 function getSaveData(){
 
+  const concertTitleInput = document.getElementById("concertTitleInput");
+  const concertDateInput = document.getElementById("concertDateInput");
+
   return {
+    concertTitle: concertTitleInput ? concertTitleInput.value : "",
+    concertDate: concertDateInput ? concertDateInput.value : "",
 
     version:7,
 
@@ -3869,15 +4008,151 @@ function getSaveData(){
 }
 
 
+
+const MANUAL_SAVE_KEY =
+  "windBandStageLayoutV7";
+
+const AUTO_SAVE_KEY =
+  "windBandStageLayoutAutoV1";
+
+let autoSaveEnabled = true;
+let autoSaveTimer = null;
+let restoringAutoSave = false;
+
+function setAutoSaveStatus(message){
+  const status =
+    document.getElementById(
+      "autoSaveStatus"
+    );
+
+  if(status){
+    status.textContent = message;
+  }
+}
+
+function saveAutoLayout(){
+
+  if(
+    !autoSaveEnabled ||
+    restoringAutoSave
+  ){
+    return;
+  }
+
+  try{
+    const payload = {
+      savedAt:
+        new Date().toISOString(),
+
+      data:
+        getSaveData()
+    };
+
+    localStorage.setItem(
+      AUTO_SAVE_KEY,
+      JSON.stringify(payload)
+    );
+
+    const now =
+      new Date();
+
+    const timeText =
+      now
+      .toLocaleTimeString(
+        "ja-JP",
+        {
+          hour:"2-digit",
+          minute:"2-digit"
+        }
+      );
+
+    setAutoSaveStatus(
+      "自動保存済み：" +
+      timeText
+    );
+  }
+  catch(error){
+    setAutoSaveStatus(
+      "自動保存できませんでした（背景画像が大きい可能性があります）"
+    );
+  }
+}
+
+function scheduleAutoSave(){
+
+  if(
+    !autoSaveEnabled ||
+    restoringAutoSave
+  ){
+    return;
+  }
+
+  window.clearTimeout(
+    autoSaveTimer
+  );
+
+  autoSaveTimer =
+    window.setTimeout(
+      saveAutoLayout,
+      500
+    );
+}
+
+function restoreAutoLayout(){
+
+  const raw =
+    localStorage.getItem(
+      AUTO_SAVE_KEY
+    );
+
+  if(!raw){
+    return false;
+  }
+
+  try{
+    const payload =
+      JSON.parse(raw);
+
+    if(
+      !payload ||
+      !payload.data
+    ){
+      return false;
+    }
+
+    restoringAutoSave = true;
+
+    applySaveData(
+      payload.data
+    );
+
+    restoringAutoSave = false;
+
+    setAutoSaveStatus(
+      "前回の自動保存を復元しました"
+    );
+
+    return true;
+  }
+  catch(error){
+    restoringAutoSave = false;
+    return false;
+  }
+}
+
 function saveLayout(){
 
   try{
 
     localStorage.setItem(
-      "windBandStageLayoutV7",
+      MANUAL_SAVE_KEY,
       JSON.stringify(
         getSaveData()
       )
+    );
+
+    setAutoSaveStatus(
+      "手動保存しました"
     );
 
     alert("配置を保存しました。");
@@ -3896,7 +4171,7 @@ function loadLayout(){
 
   const text =
     localStorage.getItem(
-      "windBandStageLayoutV7"
+      MANUAL_SAVE_KEY
     );
 
 
@@ -3922,6 +4197,12 @@ function loadLayout(){
 
 
 function applySaveData(data){
+
+  const concertTitleInput = document.getElementById("concertTitleInput");
+  const concertDateInput = document.getElementById("concertDateInput");
+
+  if(concertTitleInput) concertTitleInput.value = data.concertTitle || "";
+  if(concertDateInput) concertDateInput.value = data.concertDate || "";
 
   stageWidthMM =
     Number(data.stageWidthMM) ||
@@ -4054,8 +4335,19 @@ function exportJSON(){
   anchor.href =
     url;
 
+  const now =
+    new Date();
+
+  const stamp =
+    now
+    .toISOString()
+    .slice(0,16)
+    .replace(/[:T]/g,"-");
+
   anchor.download =
-    "stage-layout.json";
+    "stage-layout-" +
+    stamp +
+    ".json";
 
 
   document.body.appendChild(anchor);
@@ -4090,6 +4382,7 @@ function importJSON(file){
           );
 
         applySaveData(data);
+        scheduleAutoSave();
 
       }
       catch(error){
@@ -4568,6 +4861,180 @@ workspace.addEventListener(
 );
 
 
+
+function preparePrintHeader(){
+
+  const titleInput = document.getElementById("concertTitleInput");
+  const dateInput = document.getElementById("concertDateInput");
+  const printTitle = document.getElementById("printTitle");
+  const printConcertDate = document.getElementById("printConcertDate");
+  const printMeta = document.getElementById("printMeta");
+
+  const title =
+    titleInput && titleInput.value.trim()
+    ? titleInput.value.trim()
+    : "吹奏楽 ステージ配置図";
+
+  if(printTitle){
+    printTitle.textContent = title;
+  }
+
+  if(printConcertDate){
+    if(dateInput && dateInput.value){
+      const parts = dateInput.value.split("-");
+      printConcertDate.textContent =
+        Number(parts[0]) + "年" +
+        Number(parts[1]) + "月" +
+        Number(parts[2]) + "日";
+    }else{
+      printConcertDate.textContent = "";
+    }
+  }
+
+  if(printMeta){
+    printMeta.textContent =
+      "ステージ配置図　／　舞台サイズ：" +
+      stageWidthMM + " × " + stageDepthMM + " mm";
+  }
+}
+
+
+function saveAsPDF(){
+
+  /*
+    PDF保存はブラウザ標準の印刷機能を利用。
+    iPad / PCで最も安定する。
+  */
+  preparePrintHeader();
+
+  const previousScreenScale =
+    screenScale;
+
+  const previousViewScale =
+    viewScale;
+
+  const previousTransform =
+    stage.style.transform;
+
+  const previousOrigin =
+    stage.style.transformOrigin;
+
+  /*
+    印刷時は通常倍率へ戻す。
+  */
+  applyScreenScale(1);
+  applyViewScale(1);
+
+  window.setTimeout(
+    () => {
+
+      window.print();
+
+      /*
+        印刷画面を閉じた後に元の表示倍率へ戻す。
+      */
+      window.setTimeout(
+        () => {
+          applyScreenScale(
+            previousScreenScale
+          );
+
+          applyViewScale(
+            previousViewScale
+          );
+
+          stage.style.transformOrigin =
+            previousOrigin ||
+            "top left";
+
+          if(previousTransform){
+            stage.style.transform =
+              previousTransform;
+          }
+        },
+        300
+      );
+    },
+    100
+  );
+}
+
+/* 自動保存 */
+
+const autoSaveToggle =
+  document.getElementById(
+    "autoSaveToggle"
+  );
+
+if(autoSaveToggle){
+
+  autoSaveEnabled =
+    autoSaveToggle.checked;
+
+  autoSaveToggle.addEventListener(
+    "change",
+    () => {
+      autoSaveEnabled =
+        autoSaveToggle.checked;
+
+      if(autoSaveEnabled){
+        setAutoSaveStatus(
+          "自動保存：ON"
+        );
+        scheduleAutoSave();
+      }
+      else{
+        setAutoSaveStatus(
+          "自動保存：OFF"
+        );
+      }
+    }
+  );
+}
+
+/*
+  入力値変更・楽器移動・各種ボタン操作をまとめて検知。
+  500msのデバウンスで保存するため、ドラッグ中に連続書込みしない。
+*/
+document.addEventListener(
+  "input",
+  scheduleAutoSave,
+  true
+);
+
+document.addEventListener(
+  "change",
+  scheduleAutoSave,
+  true
+);
+
+document.addEventListener(
+  "pointerup",
+  scheduleAutoSave,
+  true
+);
+
+document.addEventListener(
+  "touchend",
+  scheduleAutoSave,
+  true
+);
+
+document.addEventListener(
+  "click",
+  event => {
+    if(
+      event.target.closest(
+        "button"
+      )
+    ){
+      scheduleAutoSave();
+    }
+  },
+  true
+);
+
+
 /* 保存 */
 
 document
@@ -4591,6 +5058,13 @@ document
 .addEventListener(
   "click",
   exportJSON
+);
+
+document
+.getElementById("pdfButton")
+.addEventListener(
+  "click",
+  saveAsPDF
 );
 
 
@@ -4814,14 +5288,19 @@ function exitOverviewMode(){
 
 function isMobileLayout(){
   /*
-    Googleサイト埋め込み・横画面でもスマホUIになるよう、
-    画面幅とタッチ端末の両方を見る。
+    iPhone / iPad / タッチ端末を横画面でも確実に判定。
+    iPadは横向きで幅が950pxを超えるため、
+    navigator.maxTouchPoints も利用する。
   */
+  const touchDevice =
+    navigator.maxTouchPoints > 0 ||
+    window.matchMedia("(pointer:coarse)").matches;
+
   return (
     window.innerWidth <= 950 ||
     (
-      window.matchMedia("(pointer:coarse)").matches &&
-      window.innerWidth <= 1200
+      touchDevice &&
+      window.innerWidth <= 1366
     )
   );
 }
@@ -5004,7 +5483,12 @@ function centerStageInLandscape(){
     stageHolder.style.minWidth = "100%";
     stageHolder.style.display = "flex";
     stageHolder.style.justifyContent = "center";
+    stageHolder.style.alignItems = "flex-start";
+
+    stage.style.marginLeft = "auto";
+    stage.style.marginRight = "auto";
     stage.style.transformOrigin = "top center";
+
     workspace.scrollLeft = 0;
   }
 }
@@ -5013,6 +5497,22 @@ function refreshMobileLayout(){
   closeMobilePanels();
 
   if(isMobileLayout()){
+
+    if(
+      !window.matchMedia(
+        "(orientation:landscape)"
+      ).matches
+    ){
+      stage.style.marginLeft = "";
+      stage.style.marginRight = "";
+      stage.style.transformOrigin = "top left";
+
+      stageHolder.style.display = "";
+      stageHolder.style.justifyContent = "";
+      stageHolder.style.alignItems = "";
+      stageHolder.style.minWidth = "";
+    }
+
     requestAnimationFrame(
       () => {
         requestAnimationFrame(
@@ -5226,7 +5726,7 @@ window.addEventListener(
   () => {
     closeMobilePanels();
 
-    window.setTimeout(
+    const refreshAfterRotate =
       () => {
         if(overviewMode){
           fitStageToOverview();
@@ -5234,8 +5734,20 @@ window.addEventListener(
         else{
           refreshMobileLayout();
         }
-      },
-      220
+      };
+
+    window.setTimeout(
+      refreshAfterRotate,
+      180
+    );
+
+    /*
+      iPad Safariは横画面切替後に
+      visual viewport が少し遅れて確定することがある。
+    */
+    window.setTimeout(
+      refreshAfterRotate,
+      520
     );
   }
 );
@@ -5247,6 +5759,9 @@ if(window.visualViewport){
     () => {
       if(overviewMode){
         fitStageToOverview();
+      }
+      else if(isMobileLayout()){
+        scheduleMobileRefresh();
       }
     }
   );
@@ -5278,6 +5793,20 @@ render();
 showEditor();
 
 closeMobilePanels();
+
+/*
+  同じ端末に前回の自動保存があれば復元。
+  初回利用時は空の舞台のまま。
+*/
+const restoredAutoSave =
+  restoreAutoLayout();
+
+if(
+  !restoredAutoSave &&
+  autoSaveEnabled
+){
+  scheduleAutoSave();
+}
 
 if(isMobileLayout()){
   window.setTimeout(
