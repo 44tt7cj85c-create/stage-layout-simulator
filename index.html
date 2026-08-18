@@ -1947,6 +1947,20 @@ input[type="range"]{padding:0}
   }
 }
 
+
+/* =============================
+   iOS Safari 1ページ固定：79%縮小
+============================= */
+@media print{
+
+  .pdfSheet{
+    transform:scale(.79) !important;
+    transform-origin:top left !important;
+    left:5mm !important;
+    top:5mm !important;
+  }
+}
+
 </style>
 </head>
 
@@ -7328,6 +7342,8 @@ body{
   width:270mm;
   height:180mm;
   display:grid;
+  transform:scale(.79);
+  transform-origin:top left;
   grid-template-rows:12mm 9mm 1fr 13mm;
   overflow:hidden;
   border:.35mm solid #555;
@@ -7477,6 +7493,8 @@ body{
   }
 
   .pdfSheet{
+    transform:scale(.79) !important;
+    transform-origin:top left !important;
     page-break-before:avoid !important;
     page-break-after:avoid !important;
     page-break-inside:avoid !important;
