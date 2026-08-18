@@ -1638,7 +1638,7 @@ input[type="range"]{padding:0}
 ============================= */
 
 #printPage{
-  display:none;
+  display:none !important;
 }
 
 @media print{
@@ -1785,6 +1785,165 @@ input[type="range"]{padding:0}
 
   #printPage .printPlanBottom > div:last-child{
     border-right:0;
+  }
+}
+
+
+/* =============================
+   iPhone / iPad PDF 最終安定版
+   画面で正常な「俯瞰表示」をそのままA4横1枚へ
+============================= */
+@media print{
+
+  @page{
+    size:A4 landscape;
+    margin:0;
+  }
+
+  html,
+  body{
+    margin:0 !important;
+    padding:0 !important;
+    width:297mm !important;
+    height:210mm !important;
+    min-width:297mm !important;
+    min-height:210mm !important;
+    max-width:297mm !important;
+    max-height:210mm !important;
+    overflow:hidden !important;
+    background:white !important;
+    transform:none !important;
+  }
+
+  /*
+    Safariでは以前の @media print の #overviewLayer 指定が
+    body > * の非表示より強く残ることがあるため、
+    印刷する要素をここで明示的に一本化。
+  */
+  body > *{
+    display:none !important;
+  }
+
+  #overviewLayer{
+    display:block !important;
+    position:absolute !important;
+    left:0 !important;
+    top:0 !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:297mm !important;
+    height:210mm !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    background:white !important;
+    z-index:999999 !important;
+    page-break-before:avoid !important;
+    page-break-after:avoid !important;
+    page-break-inside:avoid !important;
+    break-before:avoid-page !important;
+    break-after:avoid-page !important;
+    break-inside:avoid-page !important;
+  }
+
+  #overviewLayer .overviewPlanSheet{
+    display:grid !important;
+    position:absolute !important;
+    left:5mm !important;
+    top:5mm !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:287mm !important;
+    height:200mm !important;
+    margin:0 !important;
+    padding:0 !important;
+    grid-template-rows:14mm 1fr 10mm !important;
+    border:0.35mm solid #777 !important;
+    background:#f7f3ea !important;
+    overflow:hidden !important;
+  }
+
+  #overviewLayer .overviewPlanTop{
+    display:grid !important;
+    grid-template-columns:50mm 1fr 28mm 44mm !important;
+    height:14mm !important;
+    min-height:14mm !important;
+  }
+
+  #overviewLayer .overviewVenue{
+    font-size:10pt !important;
+  }
+
+  #overviewLayer .overviewTitle{
+    font-size:18pt !important;
+    line-height:1 !important;
+  }
+
+  #overviewLayer .overviewPart,
+  #overviewLayer .overviewDate{
+    font-size:10pt !important;
+  }
+
+  #overviewLayer .overviewStageArea{
+    display:block !important;
+    position:relative !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    background:#faf7ef !important;
+  }
+
+  #overviewLayer .overviewStageHost{
+    display:block !important;
+    position:absolute !important;
+    left:4mm !important;
+    right:4mm !important;
+    top:3mm !important;
+    bottom:13mm !important;
+    overflow:hidden !important;
+  }
+
+  #overviewLayer .overviewStageHost #stage{
+    display:block !important;
+    position:absolute !important;
+    left:50% !important;
+    top:50% !important;
+    margin:0 !important;
+    box-shadow:none !important;
+    transform-origin:center center !important;
+  }
+
+  #overviewLayer .overviewOrg{
+    display:block !important;
+    position:absolute !important;
+    right:5mm !important;
+    bottom:2.5mm !important;
+    min-width:70mm !important;
+    max-width:96mm !important;
+    padding:1.5mm 4mm !important;
+    font-size:9pt !important;
+    background:white !important;
+  }
+
+  #overviewLayer .overviewPlanBottom{
+    display:grid !important;
+    grid-template-columns:40mm 1fr 1fr !important;
+    height:10mm !important;
+    min-height:10mm !important;
+  }
+
+  #overviewLayer .overviewPlanBottom > div{
+    font-size:8.5pt !important;
+  }
+
+  #overviewExitButton,
+  #printPage,
+  .rotateLine,
+  .rotateHandle{
+    display:none !important;
+  }
+
+  .stageItem.selected{
+    outline:none !important;
   }
 }
 
@@ -6707,23 +6866,78 @@ function fitPrintStage(){
 }
 
 
+
+function fitOverviewStageForPrint(){
+
+  if(
+    !overviewStageHost ||
+    !stage
+  ){
+    return;
+  }
+
+  const hostRect =
+    overviewStageHost.getBoundingClientRect();
+
+  const baseWidth =
+    stage.offsetWidth || 1000;
+
+  const baseHeight =
+    stage.offsetHeight ||
+    (
+      1000 *
+      stageDepthMM /
+      stageWidthMM
+    );
+
+  if(
+    hostRect.width <= 0 ||
+    hostRect.height <= 0 ||
+    baseWidth <= 0 ||
+    baseHeight <= 0
+  ){
+    return;
+  }
+
+  const scale =
+    Math.min(
+      hostRect.width / baseWidth,
+      hostRect.height / baseHeight
+    ) * 0.985;
+
+  stage.style.transform =
+    "translate(-50%,-50%) scale(" +
+    scale +
+    ")";
+}
+
+
 function saveAsPDF(){
 
   syncOrganizationEverywhere();
   updatePlanHeader();
 
-  buildPrintPage();
-  fitPrintStage();
+  const wasOverview =
+    overviewMode;
+
+  const previousScreenScale =
+    screenScale;
+
+  const previousViewScale =
+    viewScale;
+
+  if(!wasOverview){
+    enterOverviewMode();
+  }
 
   const beforePrint =
     () => {
       syncOrganizationEverywhere();
       updatePlanHeader();
-      buildPrintPage();
 
       requestAnimationFrame(
         () => {
-          fitPrintStage();
+          fitOverviewStageForPrint();
         }
       );
     };
@@ -6739,11 +6953,40 @@ function saveAsPDF(){
       requestAnimationFrame(
         () => {
 
-          fitPrintStage();
+          fitStageToOverview();
 
           window.setTimeout(
             () => {
-              window.print();
+
+              fitOverviewStageForPrint();
+
+              window.setTimeout(
+                () => {
+                  window.print();
+
+                  window.setTimeout(
+                    () => {
+
+                      if(
+                        !wasOverview &&
+                        overviewMode
+                      ){
+                        exitOverviewMode();
+                      }
+
+                      applyScreenScale(
+                        previousScreenScale
+                      );
+
+                      applyViewScale(
+                        previousViewScale
+                      );
+                    },
+                    350
+                  );
+                },
+                80
+              );
             },
             120
           );
