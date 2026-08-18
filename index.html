@@ -1632,6 +1632,162 @@ input[type="range"]{padding:0}
   }
 }
 
+
+/* =============================
+   PDF安定版：専用A4横1枚ページ
+============================= */
+
+#printPage{
+  display:none;
+}
+
+@media print{
+
+  @page{
+    size:A4 landscape;
+    margin:5mm;
+  }
+
+  html,
+  body{
+    margin:0 !important;
+    padding:0 !important;
+    width:auto !important;
+    height:auto !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    overflow:visible !important;
+    background:white !important;
+    transform:none !important;
+  }
+
+  body > *{
+    display:none !important;
+  }
+
+  #printPage{
+    display:grid !important;
+    position:relative !important;
+    width:277mm !important;
+    height:190mm !important;
+    margin:0 auto !important;
+    padding:0 !important;
+    grid-template-rows:14mm 1fr 10mm !important;
+    border:0.35mm solid #777 !important;
+    background:#f7f3ea !important;
+    overflow:hidden !important;
+    page-break-inside:avoid !important;
+    page-break-after:avoid !important;
+    break-inside:avoid-page !important;
+  }
+
+  #printPage .printPlanTop{
+    display:grid !important;
+    grid-template-columns:50mm 1fr 28mm 44mm !important;
+    border-bottom:0.3mm solid #aaa;
+  }
+
+  #printPage .printPlanTop > div{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    min-width:0 !important;
+    padding:1.5mm 2mm !important;
+    border-right:0.3mm solid #aaa;
+    overflow:hidden !important;
+    white-space:nowrap !important;
+    text-overflow:ellipsis !important;
+  }
+
+  #printPage .printPlanTop > div:last-child{
+    border-right:0;
+  }
+
+  #printPage .printVenue{
+    font-size:10pt !important;
+    font-weight:600 !important;
+  }
+
+  #printPage .printTitle{
+    font-size:18pt !important;
+    font-weight:800 !important;
+    letter-spacing:.04em !important;
+  }
+
+  #printPage .printPart,
+  #printPage .printDate{
+    font-size:10pt !important;
+    font-weight:700 !important;
+  }
+
+  #printPage .printStageArea{
+    position:relative !important;
+    overflow:hidden !important;
+    background:#faf7ef !important;
+  }
+
+  #printPage .printStageHost{
+    position:absolute !important;
+    left:4mm !important;
+    right:4mm !important;
+    top:3mm !important;
+    bottom:13mm !important;
+    overflow:hidden !important;
+  }
+
+  #printPage .printStageHost > .printStageClone{
+    position:absolute !important;
+    left:50% !important;
+    top:50% !important;
+    margin:0 !important;
+    transform-origin:center center !important;
+    box-shadow:none !important;
+    border-width:0.45mm !important;
+  }
+
+  #printPage .printStageClone .stageItem.selected{
+    outline:none !important;
+  }
+
+  #printPage .printStageClone .rotateLine,
+  #printPage .printStageClone .rotateHandle{
+    display:none !important;
+  }
+
+  #printPage .printOrg{
+    position:absolute !important;
+    right:5mm !important;
+    bottom:2.5mm !important;
+    min-width:70mm !important;
+    max-width:96mm !important;
+    padding:1.5mm 4mm !important;
+    border:0.25mm dashed #777 !important;
+    background:white !important;
+    text-align:center !important;
+    font-size:9pt !important;
+    font-weight:700 !important;
+  }
+
+  #printPage .printPlanBottom{
+    display:grid !important;
+    grid-template-columns:40mm 1fr 1fr !important;
+    border-top:0.3mm solid #aaa;
+  }
+
+  #printPage .printPlanBottom > div{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:2mm !important;
+    border-right:0.3mm solid #aaa;
+    font-size:8.5pt !important;
+  }
+
+  #printPage .printPlanBottom > div:last-child{
+    border-right:0;
+  }
+}
+
 </style>
 </head>
 
@@ -2223,6 +2379,27 @@ Delete：削除
  <button id="mobileInstrumentsButton" type="button">🎺 楽器</button>
  <button id="mobileFitButton" type="button">👁 俯瞰</button>
  <button id="mobileEditButton" type="button">✏️ 編集</button>
+</div>
+
+
+<div id="printPage">
+  <div class="printPlanTop">
+    <div class="printVenue" id="printPlanVenue"></div>
+    <div class="printTitle" id="printPlanTitle"></div>
+    <div class="printPart" id="printPlanPart"></div>
+    <div class="printDate" id="printPlanDate"></div>
+  </div>
+
+  <div class="printStageArea">
+    <div class="printStageHost" id="printStageHost"></div>
+    <div class="printOrg" id="printPlanOrg"></div>
+  </div>
+
+  <div class="printPlanBottom">
+    <div>縮尺 <strong>1：30</strong></div>
+    <div>作成日 <span id="printPlanCreated"></span></div>
+    <div>舞台サイズ <strong id="printPlanStageSize"></strong></div>
+  </div>
 </div>
 
 <script>
@@ -6308,35 +6485,192 @@ function fitStageForPrint(){
 }
 
 
-function saveAsPDF(){
 
-  preparePrintHeader();
-  updatePlanHeader();
+function buildPrintPage(){
 
-  const wasOverview =
-    overviewMode;
+  const printStageHost =
+    document.getElementById("printStageHost");
 
-  const previousScreenScale =
-    screenScale;
+  if(!printStageHost){
+    return;
+  }
 
-  const previousViewScale =
-    viewScale;
+  printStageHost.innerHTML = "";
 
-  if(!wasOverview){
-    enterOverviewMode();
+  /*
+    編集中の舞台を複製して印刷専用ページへ置く。
+    元のstageを移動しないので、印刷時に舞台が消える問題を防ぐ。
+  */
+  const clone =
+    stage.cloneNode(true);
+
+  clone.removeAttribute("id");
+  clone.classList.add(
+    "printStageClone"
+  );
+
+  clone.style.width =
+    stage.offsetWidth + "px";
+
+  clone.style.height =
+    stage.offsetHeight + "px";
+
+  clone.style.transform =
+    "translate(-50%,-50%) scale(1)";
+
+  clone.style.transformOrigin =
+    "center center";
+
+  printStageHost.appendChild(
+    clone
+  );
+
+  const venue =
+    document.getElementById("venueNameInput");
+
+  const title =
+    document.getElementById("concertTitleInput");
+
+  const part =
+    document.getElementById("concertPartInput");
+
+  const date =
+    document.getElementById("concertDateInput");
+
+  const org =
+    document.getElementById("organizationInput");
+
+  const setText =
+    (id,value) => {
+      const el =
+        document.getElementById(id);
+
+      if(el){
+        el.textContent =
+          value || "";
+      }
+    };
+
+  setText(
+    "printPlanVenue",
+    venue ? venue.value.trim() : ""
+  );
+
+  setText(
+    "printPlanTitle",
+    title ? title.value.trim() : ""
+  );
+
+  setText(
+    "printPlanPart",
+    part ? part.value.trim() : ""
+  );
+
+  setText(
+    "printPlanDate",
+    date
+      ? formatPlanDate(date.value)
+      : ""
+  );
+
+  setText(
+    "printPlanOrg",
+    org ? org.value.trim() : ""
+  );
+
+  const now =
+    new Date();
+
+  setText(
+    "printPlanCreated",
+    now.toLocaleString(
+      "ja-JP",
+      {
+        year:"numeric",
+        month:"numeric",
+        day:"numeric",
+        hour:"2-digit",
+        minute:"2-digit"
+      }
+    )
+  );
+
+  setText(
+    "printPlanStageSize",
+    stageWidthMM +
+    " mm × " +
+    stageDepthMM +
+    " mm"
+  );
+}
+
+
+function fitPrintStage(){
+
+  const host =
+    document.getElementById(
+      "printStageHost"
+    );
+
+  const clone =
+    host
+    ? host.querySelector(
+        ".printStageClone"
+      )
+    : null;
+
+  if(
+    !host ||
+    !clone
+  ){
+    return;
+  }
+
+  const hostRect =
+    host.getBoundingClientRect();
+
+  const baseWidth =
+    stage.offsetWidth;
+
+  const baseHeight =
+    stage.offsetHeight;
+
+  if(
+    baseWidth <= 0 ||
+    baseHeight <= 0
+  ){
+    return;
   }
 
   /*
-    印刷CSSが反映された後に、
-    A4横の実印刷領域へ舞台を再フィット。
+    印刷エリア内に必ず舞台全面が収まる contain 方式。
   */
+  const scale =
+    Math.min(
+      hostRect.width / baseWidth,
+      hostRect.height / baseHeight
+    );
+
+  clone.style.transform =
+    "translate(-50%,-50%) scale(" +
+    scale +
+    ")";
+}
+
+
+function saveAsPDF(){
+
+  updatePlanHeader();
+
+  buildPrintPage();
+
   const beforePrint =
     () => {
-      updatePlanHeader();
+      buildPrintPage();
 
       requestAnimationFrame(
         () => {
-          fitStageForPrint();
+          fitPrintStage();
         }
       );
     };
@@ -6352,35 +6686,13 @@ function saveAsPDF(){
       requestAnimationFrame(
         () => {
 
-          fitStageToOverview();
+          fitPrintStage();
 
           window.setTimeout(
             () => {
-
               window.print();
-
-              window.setTimeout(
-                () => {
-
-                  if(
-                    !wasOverview &&
-                    overviewMode
-                  ){
-                    exitOverviewMode();
-                  }
-
-                  applyScreenScale(
-                    previousScreenScale
-                  );
-
-                  applyViewScale(
-                    previousViewScale
-                  );
-                },
-                300
-              );
             },
-            180
+            120
           );
         }
       );
