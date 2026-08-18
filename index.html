@@ -2481,8 +2481,12 @@ Delete：削除
 </button>
 
 <button class="secondary full" id="pdfButton">
-📄 PDF保存
+📄 PDF保存（A4横1枚）
 </button>
+
+<div class="smallNote">
+表題・舞台配置・団体名・縮尺・作成日をA4横1枚に自動調整します。
+</div>
 
 <label>
 📥 配置ファイルを読み込む
@@ -6912,88 +6916,504 @@ function fitOverviewStageForPrint(){
 }
 
 
+
+function escapePrintText(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+
+function buildStandalonePrintHTML(){
+
+  syncOrganizationEverywhere();
+  updatePlanHeader();
+
+  const venueInput =
+    document.getElementById("venueNameInput");
+
+  const titleInput =
+    document.getElementById("concertTitleInput");
+
+  const partInput =
+    document.getElementById("concertPartInput");
+
+  const dateInput =
+    document.getElementById("concertDateInput");
+
+  const orgInput =
+    document.getElementById("organizationInput");
+
+  const venue =
+    venueInput
+    ? venueInput.value.trim()
+    : "";
+
+  const title =
+    titleInput && titleInput.value.trim()
+    ? titleInput.value.trim()
+    : "ステージ配置図";
+
+  const part =
+    partInput
+    ? partInput.value.trim()
+    : "";
+
+  const date =
+    dateInput
+    ? formatPlanDate(dateInput.value)
+    : "";
+
+  const organization =
+    orgInput
+    ? orgInput.value.trim()
+    : "";
+
+  const now =
+    new Date();
+
+  const created =
+    now.toLocaleDateString(
+      "ja-JP",
+      {
+        year:"numeric",
+        month:"long",
+        day:"numeric"
+      }
+    );
+
+  /*
+    現在の舞台を複製。
+    元画面のDOMは移動しないため、
+    iPhone/iPadの印刷で舞台が消えない。
+  */
+  const stageClone =
+    stage.cloneNode(true);
+
+  stageClone.id =
+    "pdfStage";
+
+  stageClone
+    .querySelectorAll(
+      ".selected"
+    )
+    .forEach(
+      el => {
+        el.classList.remove(
+          "selected"
+        );
+      }
+    );
+
+  stageClone
+    .querySelectorAll(
+      ".rotateLine,.rotateHandle"
+    )
+    .forEach(
+      el => {
+        el.remove();
+      }
+    );
+
+  stageClone.style.transform =
+    "none";
+
+  stageClone.style.transformOrigin =
+    "top left";
+
+  stageClone.style.margin =
+    "0";
+
+  stageClone.style.boxShadow =
+    "none";
+
+  const stageHTML =
+    stageClone.outerHTML;
+
+  /*
+    舞台関係の既存CSSも利用する。
+    後ろにPDF専用CSSを置くことで、
+    既存の印刷CSSよりこちらを優先する。
+  */
+  const sourceStyles =
+    Array
+    .from(
+      document.querySelectorAll(
+        "style"
+      )
+    )
+    .map(
+      style => style.textContent
+    )
+    .join("\n");
+
+  const baseWidth =
+    stage.offsetWidth || 1000;
+
+  const baseHeight =
+    stage.offsetHeight ||
+    (
+      1000 *
+      stageDepthMM /
+      stageWidthMM
+    );
+
+  /*
+    A4横 297×210mm
+    外周5mm、紙面内287×200mm。
+    ステージ領域は271×146mm程度。
+    CSSの96dpi換算で安全側に0.96を掛ける。
+  */
+  const MM_TO_PX =
+    96 / 25.4;
+
+  const targetWidth =
+    271 *
+    MM_TO_PX;
+
+  const targetHeight =
+    146 *
+    MM_TO_PX;
+
+  const printScale =
+    Math.min(
+      targetWidth / baseWidth,
+      targetHeight / baseHeight
+    ) * 0.96;
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapePrintText(title)} - ステージ配置図</title>
+
+<style>
+${sourceStyles}
+</style>
+
+<style>
+@page{
+  size:A4 landscape;
+  margin:0;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,
+body{
+  margin:0 !important;
+  padding:0 !important;
+  width:297mm !important;
+  height:210mm !important;
+  min-width:297mm !important;
+  min-height:210mm !important;
+  max-width:297mm !important;
+  max-height:210mm !important;
+  overflow:hidden !important;
+  background:#fff !important;
+  transform:none !important;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+}
+
+body > *{
+  display:block !important;
+}
+
+.pdfSheet{
+  position:absolute;
+  left:5mm;
+  top:5mm;
+  width:287mm;
+  height:200mm;
+  display:grid !important;
+  grid-template-rows:14mm 10mm 1fr 15mm;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  border:0.35mm solid #555;
+  background:#f8f4ea;
+  color:#111;
+  page-break-inside:avoid;
+  break-inside:avoid-page;
+}
+
+.pdfTop{
+  display:grid;
+  grid-template-columns:52mm 1fr 30mm 46mm;
+  border-bottom:0.3mm solid #aaa;
+}
+
+.pdfTop > div{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  padding:1mm 2mm;
+  border-right:0.3mm solid #aaa;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.pdfTop > div:last-child{
+  border-right:0;
+}
+
+.pdfVenue{
+  font-size:10pt;
+  font-weight:600;
+}
+
+.pdfTitle{
+  font-size:19pt;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:.04em;
+}
+
+.pdfPart,
+.pdfDate{
+  font-size:10pt;
+  font-weight:700;
+}
+
+.pdfSub{
+  display:grid;
+  grid-template-columns:1fr 1.2fr 1fr;
+  align-items:center;
+  padding:0 8mm;
+  border-bottom:0.25mm solid #bbb;
+  font-size:9.5pt;
+  font-weight:600;
+}
+
+.pdfSub > div{
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.pdfStageArea{
+  position:relative;
+  min-height:0;
+  overflow:hidden;
+  background:#fbf8ef;
+}
+
+.pdfStageHost{
+  position:absolute;
+  left:8mm;
+  right:8mm;
+  top:3mm;
+  bottom:12mm;
+  overflow:hidden;
+}
+
+#pdfStage{
+  display:block !important;
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  margin:0 !important;
+  box-shadow:none !important;
+  transform-origin:center center !important;
+  transform:translate(-50%,-50%) scale(${printScale}) !important;
+  border-width:0.45mm !important;
+}
+
+#pdfStage .stageItem.selected{
+  outline:none !important;
+}
+
+#pdfStage .rotateLine,
+#pdfStage .rotateHandle{
+  display:none !important;
+}
+
+.pdfAudience{
+  position:absolute;
+  left:50%;
+  bottom:2.5mm;
+  transform:translateX(-50%);
+  font-size:12pt;
+  font-weight:700;
+  letter-spacing:1.2em;
+  white-space:nowrap;
+}
+
+.pdfFooter{
+  display:grid;
+  grid-template-columns:38mm 62mm 1fr 82mm;
+  align-items:center;
+  border-top:0.3mm solid #aaa;
+  font-size:8.5pt;
+}
+
+.pdfFooter > div{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  height:100%;
+  padding:1mm 2mm;
+  border-right:0.3mm solid #aaa;
+}
+
+.pdfFooter > div:last-child{
+  border-right:0;
+}
+
+.pdfOrg{
+  margin:1.5mm 3mm;
+  padding:1.2mm 3mm !important;
+  border:0.25mm dashed #777 !important;
+  background:#fff;
+  font-size:9.5pt;
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/*
+  既存のレスポンシブCSSや印刷CSSの影響を遮断。
+*/
+header,
+.app,
+.planTopBar,
+.planBottomBar,
+.overviewLayer,
+.mobileDock,
+.mobileShade,
+#printPage{
+  display:none !important;
+}
+
+@media print{
+  html,
+  body{
+    width:297mm !important;
+    height:210mm !important;
+    overflow:hidden !important;
+  }
+
+  .pdfSheet{
+    display:grid !important;
+    page-break-before:avoid !important;
+    page-break-after:avoid !important;
+    page-break-inside:avoid !important;
+    break-before:avoid-page !important;
+    break-after:avoid-page !important;
+    break-inside:avoid-page !important;
+  }
+}
+</style>
+</head>
+
+<body>
+  <section class="pdfSheet">
+    <div class="pdfTop">
+      <div class="pdfVenue">${escapePrintText(venue)}</div>
+      <div class="pdfTitle">${escapePrintText(title)}</div>
+      <div class="pdfPart">${escapePrintText(part)}</div>
+      <div class="pdfDate">${escapePrintText(date)}</div>
+    </div>
+
+    <div class="pdfSub">
+      <div>会場名：${escapePrintText(venue.replace(/舞台配置図$/,"").trim())}</div>
+      <div>団体名：${escapePrintText(organization)}</div>
+      <div>舞台サイズ：${stageWidthMM} × ${stageDepthMM} mm</div>
+    </div>
+
+    <div class="pdfStageArea">
+      <div class="pdfStageHost">
+        ${stageHTML}
+      </div>
+      <div class="pdfAudience">客　席</div>
+    </div>
+
+    <div class="pdfFooter">
+      <div>縮尺　<strong>1：30</strong></div>
+      <div>作成日：${escapePrintText(created)}</div>
+      <div>※ 舞台サイズは幅 × 奥行です</div>
+      <div class="pdfOrg">${escapePrintText(organization)}</div>
+    </div>
+  </section>
+</body>
+</html>`;
+}
+
+
 function saveAsPDF(){
 
   syncOrganizationEverywhere();
   updatePlanHeader();
 
-  const wasOverview =
-    overviewMode;
+  const printHTML =
+    buildStandalonePrintHTML();
 
-  const previousScreenScale =
-    screenScale;
+  /*
+    iPhone / iPad Safariでは、
+    元ページに@media printを重ねるより
+    印刷専用の1ページ文書を開く方が安定する。
+  */
+  const printWindow =
+    window.open(
+      "",
+      "_blank"
+    );
 
-  const previousViewScale =
-    viewScale;
+  if(!printWindow){
 
-  if(!wasOverview){
-    enterOverviewMode();
+    alert(
+      "印刷画面を開けませんでした。ポップアップを許可して、もう一度PDF保存を押してください。"
+    );
+
+    return;
   }
 
-  const beforePrint =
-    () => {
-      syncOrganizationEverywhere();
-      updatePlanHeader();
+  printWindow.document.open();
 
-      requestAnimationFrame(
+  printWindow.document.write(
+    printHTML
+  );
+
+  printWindow.document.close();
+
+  const doPrint =
+    () => {
+
+      printWindow.focus();
+
+      window.setTimeout(
         () => {
-          fitOverviewStageForPrint();
-        }
+          printWindow.print();
+        },
+        250
       );
     };
 
-  window.addEventListener(
-    "beforeprint",
-    beforePrint,
-    {once:true}
-  );
-
-  requestAnimationFrame(
-    () => {
-      requestAnimationFrame(
-        () => {
-
-          fitStageToOverview();
-
-          window.setTimeout(
-            () => {
-
-              fitOverviewStageForPrint();
-
-              window.setTimeout(
-                () => {
-                  window.print();
-
-                  window.setTimeout(
-                    () => {
-
-                      if(
-                        !wasOverview &&
-                        overviewMode
-                      ){
-                        exitOverviewMode();
-                      }
-
-                      applyScreenScale(
-                        previousScreenScale
-                      );
-
-                      applyViewScale(
-                        previousViewScale
-                      );
-                    },
-                    350
-                  );
-                },
-                80
-              );
-            },
-            120
-          );
-        }
-      );
-    }
-  );
+  if(
+    printWindow.document.readyState ===
+    "complete"
+  ){
+    doPrint();
+  }
+  else{
+    printWindow.addEventListener(
+      "load",
+      doPrint,
+      {once:true}
+    );
+  }
 }
 
 
