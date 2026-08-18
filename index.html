@@ -6985,104 +6985,313 @@ function buildStandalonePrintHTML(){
       }
     );
 
-  /*
-    現在の舞台を複製。
-    元画面のDOMは移動しないため、
-    iPhone/iPadの印刷で舞台が消えない。
-  */
-  const stageClone =
-    stage.cloneNode(true);
 
-  stageClone.id =
-    "pdfStage";
-
-  stageClone
-    .querySelectorAll(
-      ".selected"
-    )
-    .forEach(
-      el => {
-        el.classList.remove(
-          "selected"
-        );
-      }
+  function svgEscape(value){
+    return escapePrintText(
+      value
     );
+  }
 
-  stageClone
-    .querySelectorAll(
-      ".rotateLine,.rotateHandle"
-    )
-    .forEach(
-      el => {
-        el.remove();
-      }
-    );
 
-  stageClone.style.transform =
-    "none";
+  function itemFill(item){
 
-  stageClone.style.transformOrigin =
-    "top left";
+    const className =
+      String(
+        item.className || ""
+      );
 
-  stageClone.style.margin =
-    "0";
-
-  stageClone.style.boxShadow =
-    "none";
-
-  const stageHTML =
-    stageClone.outerHTML;
-
-  /*
-    舞台関係の既存CSSも利用する。
-    後ろにPDF専用CSSを置くことで、
-    既存の印刷CSSよりこちらを優先する。
-  */
-  const sourceStyles =
-    Array
-    .from(
-      document.querySelectorAll(
-        "style"
+    if(
+      className.includes(
+        "woodwind"
       )
-    )
-    .map(
-      style => style.textContent
-    )
-    .join("\n");
+    ){
+      return "#8eb5d9";
+    }
 
-  const baseWidth =
-    stage.offsetWidth || 1000;
+    if(
+      className.includes(
+        "brass"
+      )
+    ){
+      return "#e9ca67";
+    }
 
-  const baseHeight =
-    stage.offsetHeight ||
-    (
-      1000 *
-      stageDepthMM /
-      stageWidthMM
+    if(
+      className.includes(
+        "conductor"
+      )
+    ){
+      return "#50575e";
+    }
+
+    if(
+      className.includes(
+        "piano"
+      )
+    ){
+      return "#262626";
+    }
+
+    if(
+      item.type === "riser"
+    ){
+      if(
+        Number(
+          item.riserHeight
+        ) >= 600
+      ){
+        return "#8c939a";
+      }
+
+      if(
+        Number(
+          item.riserHeight
+        ) >= 400
+      ){
+        return "#aeb3b9";
+      }
+
+      return "#d0d3d6";
+    }
+
+    return "#ce7a9e";
+  }
+
+
+  function itemTextColor(item){
+
+    const className =
+      String(
+        item.className || ""
+      );
+
+    if(
+      className.includes(
+        "conductor"
+      ) ||
+      className.includes(
+        "piano"
+      ) ||
+      (
+        item.type === "riser" &&
+        Number(
+          item.riserHeight
+        ) >= 600
+      )
+    ){
+      return "#ffffff";
+    }
+
+    return "#111111";
+  }
+
+
+  function renderSvgItem(item){
+
+    const x =
+      Number(item.x) || 0;
+
+    const y =
+      Number(item.y) || 0;
+
+    const width =
+      Math.max(
+        1,
+        Number(item.width) || 1
+      );
+
+    const depth =
+      Math.max(
+        1,
+        Number(item.depth) || 1
+      );
+
+    const rotation =
+      Number(
+        item.rotation
+      ) || 0;
+
+    const cx =
+      x + width / 2;
+
+    const cy =
+      y + depth / 2;
+
+    const className =
+      String(
+        item.className || ""
+      );
+
+    const fill =
+      itemFill(item);
+
+    const textColor =
+      itemTextColor(item);
+
+    const label =
+      svgEscape(
+        item.name || ""
+      );
+
+    const stroke =
+      item.type === "riser"
+      ? "#686d73"
+      : "rgba(0,0,0,.48)";
+
+    const fontSize =
+      Math.max(
+        150,
+        Math.min(
+          260,
+          Math.min(
+            width,
+            depth
+          ) * 0.30
+        )
+      );
+
+    let shape = "";
+
+    if(
+      item.type === "riser"
+    ){
+      const patternId =
+        "riserPattern" +
+        (
+          Number(
+            item.riserHeight
+          ) || 0
+        );
+
+      shape =
+        `<rect x="${x}" y="${y}" width="${width}" height="${depth}" ` +
+        `fill="url(#${patternId})" stroke="${stroke}" stroke-width="30"/>`;
+    }
+    else if(
+      className.includes(
+        "timpani"
+      ) ||
+      className.includes(
+        "circlePerc"
+      )
+    ){
+      shape =
+        `<ellipse cx="${cx}" cy="${cy}" rx="${width/2}" ry="${depth/2}" ` +
+        `fill="${fill}" stroke="${stroke}" stroke-width="24"/>`;
+    }
+    else if(
+      className.includes(
+        "doubleCircle"
+      )
+    ){
+      shape =
+        `<ellipse cx="${x + width*0.28}" cy="${cy}" rx="${width*0.25}" ry="${depth*0.45}" ` +
+        `fill="${fill}" stroke="${stroke}" stroke-width="24"/>` +
+        `<ellipse cx="${x + width*0.72}" cy="${cy}" rx="${width*0.25}" ry="${depth*0.45}" ` +
+        `fill="${fill}" stroke="${stroke}" stroke-width="24"/>`;
+    }
+    else if(
+      className.includes(
+        "piano"
+      )
+    ){
+      shape =
+        `<polygon points="` +
+        `${x+width*0.05},${y+depth*0.05} ` +
+        `${x+width*0.63},${y+depth*0.04} ` +
+        `${x+width*0.80},${y+depth*0.09} ` +
+        `${x+width*0.92},${y+depth*0.20} ` +
+        `${x+width*0.98},${y+depth*0.40} ` +
+        `${x+width*0.98},${y+depth*0.70} ` +
+        `${x+width*0.91},${y+depth*0.87} ` +
+        `${x+width*0.76},${y+depth*0.96} ` +
+        `${x+width*0.05},${y+depth*0.96}" ` +
+        `fill="${fill}" stroke="${stroke}" stroke-width="24"/>`;
+    }
+    else{
+      const radius =
+        className.includes(
+          "drumset"
+        )
+        ? 180
+        : 24;
+
+      shape =
+        `<rect x="${x}" y="${y}" width="${width}" height="${depth}" rx="${radius}" ry="${radius}" ` +
+        `fill="${fill}" stroke="${stroke}" stroke-width="24"/>`;
+    }
+
+    const riserLabel =
+      item.type === "riser"
+      ? (
+          `<text x="${cx}" y="${y + Math.min(depth*0.18,220)}" text-anchor="middle" ` +
+          `font-size="155" font-weight="700" fill="#222">` +
+          `ひな壇 H${svgEscape(item.riserHeight || "")}</text>`
+        )
+      : "";
+
+    const mainLabel =
+      item.type === "riser"
+      ? ""
+      : (
+          `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" ` +
+          `font-size="${fontSize}" font-weight="700" fill="${textColor}">${label}</text>`
+        );
+
+    return (
+      `<g transform="rotate(${rotation} ${cx} ${cy})">` +
+      shape +
+      riserLabel +
+      mainLabel +
+      `</g>`
     );
+  }
 
-  /*
-    A4横 297×210mm
-    外周5mm、紙面内287×200mm。
-    ステージ領域は271×146mm程度。
-    CSSの96dpi換算で安全側に0.96を掛ける。
-  */
-  const MM_TO_PX =
-    96 / 25.4;
 
-  const targetWidth =
-    271 *
-    MM_TO_PX;
+  const svgItems =
+    items
+    .map(
+      renderSvgItem
+    )
+    .join("");
 
-  const targetHeight =
-    146 *
-    MM_TO_PX;
 
-  const printScale =
-    Math.min(
-      targetWidth / baseWidth,
-      targetHeight / baseHeight
-    ) * 0.96;
+  const bgMarkup =
+    backgroundState &&
+    backgroundState.dataUrl
+    ? (
+        `<image href="${backgroundState.dataUrl}" x="0" y="0" ` +
+        `width="${stageWidthMM}" height="${stageDepthMM}" ` +
+        `preserveAspectRatio="none" opacity="${Number(backgroundState.opacity || 0.35)}"/>`
+      )
+    : "";
+
+
+  const stageSVG =
+    `<svg class="pdfStageSvg" viewBox="0 0 ${stageWidthMM} ${stageDepthMM}" ` +
+    `xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ステージ配置図">` +
+    `<defs>` +
+      `<pattern id="gridPattern" width="1800" height="1800" patternUnits="userSpaceOnUse">` +
+        `<path d="M 1800 0 L 0 0 0 1800" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="18"/>` +
+      `</pattern>` +
+      `<pattern id="riserPattern200" width="180" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">` +
+        `<rect width="90" height="180" fill="#d0d3d6"/><rect x="90" width="90" height="180" fill="#bdc1c5"/>` +
+      `</pattern>` +
+      `<pattern id="riserPattern400" width="180" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">` +
+        `<rect width="90" height="180" fill="#aeb3b9"/><rect x="90" width="90" height="180" fill="#999fa6"/>` +
+      `</pattern>` +
+      `<pattern id="riserPattern600" width="180" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">` +
+        `<rect width="90" height="180" fill="#91979e"/><rect x="90" width="90" height="180" fill="#7d848c"/>` +
+      `</pattern>` +
+    `</defs>` +
+    `<rect x="0" y="0" width="${stageWidthMM}" height="${stageDepthMM}" fill="#faf7ed"/>` +
+    bgMarkup +
+    `<rect x="0" y="0" width="${stageWidthMM}" height="${stageDepthMM}" fill="url(#gridPattern)"/>` +
+    svgItems +
+    `<rect x="12" y="12" width="${stageWidthMM-24}" height="${stageDepthMM-24}" fill="none" stroke="#444" stroke-width="35"/>` +
+    `<text x="${stageWidthMM/2}" y="220" text-anchor="middle" font-size="180" fill="rgba(0,0,0,.42)">舞台奥</text>` +
+    `</svg>`;
+
 
   return `<!DOCTYPE html>
 <html lang="ja">
@@ -7090,10 +7299,6 @@ function buildStandalonePrintHTML(){
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${escapePrintText(title)} - ステージ配置図</title>
-
-<style>
-${sourceStyles}
-</style>
 
 <style>
 @page{
@@ -7107,22 +7312,13 @@ ${sourceStyles}
 
 html,
 body{
-  margin:0 !important;
-  padding:0 !important;
-  width:297mm !important;
-  height:210mm !important;
-  min-width:297mm !important;
-  min-height:210mm !important;
-  max-width:297mm !important;
-  max-height:210mm !important;
-  overflow:hidden !important;
-  background:#fff !important;
-  transform:none !important;
+  margin:0;
+  padding:0;
+  width:297mm;
+  height:210mm;
+  overflow:hidden;
+  background:white;
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
-}
-
-body > *{
-  display:block !important;
 }
 
 .pdfSheet{
@@ -7131,22 +7327,18 @@ body > *{
   top:5mm;
   width:287mm;
   height:200mm;
-  display:grid !important;
+  display:grid;
   grid-template-rows:14mm 10mm 1fr 15mm;
-  margin:0;
-  padding:0;
   overflow:hidden;
-  border:0.35mm solid #555;
+  border:.35mm solid #555;
   background:#f8f4ea;
   color:#111;
-  page-break-inside:avoid;
-  break-inside:avoid-page;
 }
 
 .pdfTop{
   display:grid;
   grid-template-columns:52mm 1fr 30mm 46mm;
-  border-bottom:0.3mm solid #aaa;
+  border-bottom:.3mm solid #aaa;
 }
 
 .pdfTop > div{
@@ -7155,9 +7347,9 @@ body > *{
   justify-content:center;
   min-width:0;
   padding:1mm 2mm;
-  border-right:0.3mm solid #aaa;
-  overflow:hidden;
+  border-right:.3mm solid #aaa;
   white-space:nowrap;
+  overflow:hidden;
   text-overflow:ellipsis;
 }
 
@@ -7188,7 +7380,7 @@ body > *{
   grid-template-columns:1fr 1.2fr 1fr;
   align-items:center;
   padding:0 8mm;
-  border-bottom:0.25mm solid #bbb;
+  border-bottom:.25mm solid #bbb;
   font-size:9.5pt;
   font-weight:600;
 }
@@ -7213,28 +7405,17 @@ body > *{
   right:8mm;
   top:3mm;
   bottom:12mm;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   overflow:hidden;
 }
 
-#pdfStage{
-  display:block !important;
-  position:absolute !important;
-  left:50% !important;
-  top:50% !important;
-  margin:0 !important;
-  box-shadow:none !important;
-  transform-origin:center center !important;
-  transform:translate(-50%,-50%) scale(${printScale}) !important;
-  border-width:0.45mm !important;
-}
-
-#pdfStage .stageItem.selected{
-  outline:none !important;
-}
-
-#pdfStage .rotateLine,
-#pdfStage .rotateHandle{
-  display:none !important;
+.pdfStageSvg{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
 }
 
 .pdfAudience{
@@ -7252,7 +7433,7 @@ body > *{
   display:grid;
   grid-template-columns:38mm 62mm 1fr 82mm;
   align-items:center;
-  border-top:0.3mm solid #aaa;
+  border-top:.3mm solid #aaa;
   font-size:8.5pt;
 }
 
@@ -7263,7 +7444,7 @@ body > *{
   min-width:0;
   height:100%;
   padding:1mm 2mm;
-  border-right:0.3mm solid #aaa;
+  border-right:.3mm solid #aaa;
 }
 
 .pdfFooter > div:last-child{
@@ -7273,7 +7454,7 @@ body > *{
 .pdfOrg{
   margin:1.5mm 3mm;
   padding:1.2mm 3mm !important;
-  border:0.25mm dashed #777 !important;
+  border:.25mm dashed #777 !important;
   background:#fff;
   font-size:9.5pt;
   font-weight:700;
@@ -7283,36 +7464,21 @@ body > *{
   text-overflow:ellipsis;
 }
 
-/*
-  既存のレスポンシブCSSや印刷CSSの影響を遮断。
-*/
-header,
-.app,
-.planTopBar,
-.planBottomBar,
-.overviewLayer,
-.mobileDock,
-.mobileShade,
-#printPage{
-  display:none !important;
-}
-
 @media print{
   html,
   body{
-    width:297mm !important;
-    height:210mm !important;
-    overflow:hidden !important;
+    width:297mm;
+    height:210mm;
+    overflow:hidden;
   }
 
   .pdfSheet{
-    display:grid !important;
-    page-break-before:avoid !important;
-    page-break-after:avoid !important;
-    page-break-inside:avoid !important;
-    break-before:avoid-page !important;
-    break-after:avoid-page !important;
-    break-inside:avoid-page !important;
+    page-break-before:avoid;
+    page-break-after:avoid;
+    page-break-inside:avoid;
+    break-before:avoid-page;
+    break-after:avoid-page;
+    break-inside:avoid-page;
   }
 }
 </style>
@@ -7320,6 +7486,7 @@ header,
 
 <body>
   <section class="pdfSheet">
+
     <div class="pdfTop">
       <div class="pdfVenue">${escapePrintText(venue)}</div>
       <div class="pdfTitle">${escapePrintText(title)}</div>
@@ -7335,7 +7502,7 @@ header,
 
     <div class="pdfStageArea">
       <div class="pdfStageHost">
-        ${stageHTML}
+        ${stageSVG}
       </div>
       <div class="pdfAudience">客　席</div>
     </div>
@@ -7346,6 +7513,7 @@ header,
       <div>※ 舞台サイズは幅 × 奥行です</div>
       <div class="pdfOrg">${escapePrintText(organization)}</div>
     </div>
+
   </section>
 </body>
 </html>`;
