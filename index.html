@@ -7326,17 +7326,19 @@ function buildStandalonePrintHTML(){
 
 html,
 body{
-  margin:0;
-  padding:0;
-  width:280mm;
-  height:190mm;
-  overflow:hidden;
+  margin:0 !important;
+  padding:0 !important;
+  width:0 !important;
+  height:0 !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  overflow:visible !important;
   background:white;
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
 }
 
 .pdfSheet{
-  position:absolute;
+  position:fixed;
   left:5mm;
   top:5mm;
   width:270mm;
@@ -7483,16 +7485,21 @@ body{
 @media print{
   html,
   body{
-    width:280mm !important;
-    height:190mm !important;
-    min-width:280mm !important;
-    min-height:190mm !important;
-    max-width:280mm !important;
-    max-height:190mm !important;
-    overflow:hidden !important;
+    margin:0 !important;
+    padding:0 !important;
+    width:0 !important;
+    height:0 !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    max-width:0 !important;
+    max-height:0 !important;
+    overflow:visible !important;
   }
 
   .pdfSheet{
+    position:fixed !important;
+    left:5mm !important;
+    top:5mm !important;
     transform:scale(.79) !important;
     transform-origin:top left !important;
     page-break-before:avoid !important;
