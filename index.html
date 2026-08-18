@@ -1947,20 +1947,6 @@ input[type="range"]{padding:0}
   }
 }
 
-
-/* =============================
-   iOS Safari 1ページ固定：79%縮小
-============================= */
-@media print{
-
-  .pdfSheet{
-    transform:scale(.79) !important;
-    transform-origin:top left !important;
-    left:5mm !important;
-    top:5mm !important;
-  }
-}
-
 </style>
 </head>
 
@@ -7326,27 +7312,23 @@ function buildStandalonePrintHTML(){
 
 html,
 body{
-  margin:0 !important;
-  padding:0 !important;
-  width:0 !important;
-  height:0 !important;
-  min-width:0 !important;
-  min-height:0 !important;
-  overflow:visible !important;
+  margin:0;
+  padding:0;
+  width:297mm;
+  height:210mm;
+  overflow:hidden;
   background:white;
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
 }
 
 .pdfSheet{
-  position:fixed;
+  position:absolute;
   left:5mm;
   top:5mm;
-  width:270mm;
-  height:180mm;
+  width:287mm;
+  height:200mm;
   display:grid;
-  transform:scale(.79);
-  transform-origin:top left;
-  grid-template-rows:12mm 9mm 1fr 13mm;
+  grid-template-rows:14mm 10mm 1fr 15mm;
   overflow:hidden;
   border:.35mm solid #555;
   background:#f8f4ea;
@@ -7355,7 +7337,7 @@ body{
 
 .pdfTop{
   display:grid;
-  grid-template-columns:48mm 1fr 28mm 42mm;
+  grid-template-columns:52mm 1fr 30mm 46mm;
   border-bottom:.3mm solid #aaa;
 }
 
@@ -7381,7 +7363,7 @@ body{
 }
 
 .pdfTitle{
-  font-size:17pt;
+  font-size:19pt;
   font-weight:800;
   line-height:1;
   letter-spacing:.04em;
@@ -7397,7 +7379,7 @@ body{
   display:grid;
   grid-template-columns:1fr 1.2fr 1fr;
   align-items:center;
-  padding:0 6mm;
+  padding:0 8mm;
   border-bottom:.25mm solid #bbb;
   font-size:9.5pt;
   font-weight:600;
@@ -7419,10 +7401,10 @@ body{
 
 .pdfStageHost{
   position:absolute;
-  left:6mm;
-  right:6mm;
-  top:2mm;
-  bottom:10mm;
+  left:8mm;
+  right:8mm;
+  top:3mm;
+  bottom:12mm;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -7439,7 +7421,7 @@ body{
 .pdfAudience{
   position:absolute;
   left:50%;
-  bottom:2mm;
+  bottom:2.5mm;
   transform:translateX(-50%);
   font-size:12pt;
   font-weight:700;
@@ -7449,7 +7431,7 @@ body{
 
 .pdfFooter{
   display:grid;
-  grid-template-columns:34mm 56mm 1fr 74mm;
+  grid-template-columns:38mm 62mm 1fr 82mm;
   align-items:center;
   border-top:.3mm solid #aaa;
   font-size:8.5pt;
@@ -7485,29 +7467,18 @@ body{
 @media print{
   html,
   body{
-    margin:0 !important;
-    padding:0 !important;
-    width:0 !important;
-    height:0 !important;
-    min-width:0 !important;
-    min-height:0 !important;
-    max-width:0 !important;
-    max-height:0 !important;
-    overflow:visible !important;
+    width:297mm;
+    height:210mm;
+    overflow:hidden;
   }
 
   .pdfSheet{
-    position:fixed !important;
-    left:5mm !important;
-    top:5mm !important;
-    transform:scale(.79) !important;
-    transform-origin:top left !important;
-    page-break-before:avoid !important;
-    page-break-after:avoid !important;
-    page-break-inside:avoid !important;
-    break-before:avoid-page !important;
-    break-after:avoid-page !important;
-    break-inside:avoid-page !important;
+    page-break-before:avoid;
+    page-break-after:avoid;
+    page-break-inside:avoid;
+    break-before:avoid-page;
+    break-after:avoid-page;
+    break-inside:avoid-page;
   }
 }
 </style>
