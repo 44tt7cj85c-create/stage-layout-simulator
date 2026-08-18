@@ -570,7 +570,7 @@ input[type="range"]{padding:0}
    ※同じ要素を別ルールで重ね書きしない
 ============================= */
 
-@media(max-width:950px){
+@media (max-width:950px), (max-width:1200px) and (pointer:coarse){
 
   html,
   body{
@@ -629,7 +629,7 @@ input[type="range"]{padding:0}
   .app{
     display:block;
     position:relative;
-    height:calc(100vh - 96px);
+    height:calc(100dvh - 96px);
   }
 
   .workspace{
@@ -835,7 +835,7 @@ input[type="range"]{padding:0}
 /* =============================
    横画面スマホ：舞台中央表示
 ============================= */
-@media(max-width:950px) and (orientation:landscape){
+@media (max-width:950px) and (orientation:landscape), (max-width:1200px) and (pointer:coarse) and (orientation:landscape){
   .workspace{
     display:flex !important;
     justify-content:center !important;
@@ -4814,14 +4814,19 @@ function exitOverviewMode(){
 
 function isMobileLayout(){
   /*
-    Googleサイト埋め込み・横画面でもスマホUIになるよう、
-    画面幅とタッチ端末の両方を見る。
+    iPhone / iPad / タッチ端末を横画面でも確実に判定。
+    iPadは横向きで幅が950pxを超えるため、
+    navigator.maxTouchPoints も利用する。
   */
+  const touchDevice =
+    navigator.maxTouchPoints > 0 ||
+    window.matchMedia("(pointer:coarse)").matches;
+
   return (
     window.innerWidth <= 950 ||
     (
-      window.matchMedia("(pointer:coarse)").matches &&
-      window.innerWidth <= 1200
+      touchDevice &&
+      window.innerWidth <= 1366
     )
   );
 }
@@ -5004,7 +5009,12 @@ function centerStageInLandscape(){
     stageHolder.style.minWidth = "100%";
     stageHolder.style.display = "flex";
     stageHolder.style.justifyContent = "center";
+    stageHolder.style.alignItems = "flex-start";
+
+    stage.style.marginLeft = "auto";
+    stage.style.marginRight = "auto";
     stage.style.transformOrigin = "top center";
+
     workspace.scrollLeft = 0;
   }
 }
@@ -5013,6 +5023,22 @@ function refreshMobileLayout(){
   closeMobilePanels();
 
   if(isMobileLayout()){
+
+    if(
+      !window.matchMedia(
+        "(orientation:landscape)"
+      ).matches
+    ){
+      stage.style.marginLeft = "";
+      stage.style.marginRight = "";
+      stage.style.transformOrigin = "top left";
+
+      stageHolder.style.display = "";
+      stageHolder.style.justifyContent = "";
+      stageHolder.style.alignItems = "";
+      stageHolder.style.minWidth = "";
+    }
+
     requestAnimationFrame(
       () => {
         requestAnimationFrame(
@@ -5226,7 +5252,7 @@ window.addEventListener(
   () => {
     closeMobilePanels();
 
-    window.setTimeout(
+    const refreshAfterRotate =
       () => {
         if(overviewMode){
           fitStageToOverview();
@@ -5234,8 +5260,20 @@ window.addEventListener(
         else{
           refreshMobileLayout();
         }
-      },
-      220
+      };
+
+    window.setTimeout(
+      refreshAfterRotate,
+      180
+    );
+
+    /*
+      iPad Safariは横画面切替後に
+      visual viewport が少し遅れて確定することがある。
+    */
+    window.setTimeout(
+      refreshAfterRotate,
+      520
     );
   }
 );
@@ -5247,6 +5285,9 @@ if(window.visualViewport){
     () => {
       if(overviewMode){
         fitStageToOverview();
+      }
+      else if(isMobileLayout()){
+        scheduleMobileRefresh();
       }
     }
   );
