@@ -3967,6 +3967,415 @@ function clearBackground(){
 }
 
 
+
+/* =============================
+   初期配置
+   2026演奏会レイアウト
+============================= */
+
+function initializeDefaultLayout(){
+
+  items = [];
+  nextId = 1;
+  selectedId = null;
+
+  const addInitialItem =
+    (
+      presetKey,
+      x,
+      y,
+      rotation=0
+    ) => {
+
+      const preset =
+        presets[presetKey];
+
+      if(!preset){
+        return;
+      }
+
+      items.push({
+        id:nextId++,
+        type:"instrument",
+        name:preset.name,
+        className:preset.className,
+        width:preset.width,
+        depth:preset.depth,
+        x,
+        y,
+        rotation,
+        locked:false,
+        riserHeight:0
+      });
+    };
+
+
+  const addInitialRiser =
+    (
+      x,
+      y,
+      width,
+      depth,
+      height
+    ) => {
+
+      items.push({
+        id:nextId++,
+        type:"riser",
+        name:"ひな壇 H" + height,
+        className:
+          getRiserClass(height),
+        width,
+        depth,
+        x,
+        y,
+        rotation:0,
+        locked:true,
+        riserHeight:height
+      });
+    };
+
+
+  const addInitialTimpani =
+    (
+      x,
+      y,
+      diameter
+    ) => {
+
+      items.push({
+        id:nextId++,
+        type:"instrument",
+        name:"Timp.",
+        className:
+          "percussion timpani",
+        width:diameter,
+        depth:diameter,
+        x,
+        y,
+        rotation:0,
+        locked:false,
+        riserHeight:0
+      });
+    };
+
+
+  /*
+    後列ひな壇：1800×1800 H400 ×5
+  */
+  [
+    2700,
+    4500,
+    6300,
+    8100,
+    9900
+  ].forEach(
+    x => {
+      addInitialRiser(
+        x,
+        350,
+        1800,
+        1800,
+        400
+      );
+    }
+  );
+
+
+  /*
+    前列ひな壇：1800×1200 H200 ×3
+  */
+  [
+    6300,
+    8100,
+    9900
+  ].forEach(
+    x => {
+      addInitialRiser(
+        x,
+        2100,
+        1800,
+        1200,
+        200
+      );
+    }
+  );
+
+
+  /* ティンパニ */
+  addInitialTimpani(
+    750,
+    200,
+    1100
+  );
+
+  addInitialTimpani(
+    1550,
+    1000,
+    1100
+  );
+
+  addInitialTimpani(
+    250,
+    2050,
+    900
+  );
+
+  addInitialTimpani(
+    1150,
+    2050,
+    950
+  );
+
+
+  /* 後方打楽器 */
+  addInitialItem(
+    "stand",
+    3950,
+    750
+  );
+
+  addInitialItem(
+    "suspendCymbal",
+    5200,
+    650
+  );
+
+  addInitialItem(
+    "cymbal",
+    6000,
+    700
+  );
+
+  addInitialItem(
+    "glockenspiel",
+    6950,
+    650
+  );
+
+  addInitialItem(
+    "xylophone",
+    8550,
+    600
+  );
+
+
+  /* 後列金管 */
+  [
+    3450,
+    4550,
+    5500,
+    6600
+  ].forEach(
+    x => {
+      addInitialItem(
+        "trumpet",
+        x,
+        1400
+      );
+    }
+  );
+
+  [
+    7500,
+    8450,
+    9400,
+    10300
+  ].forEach(
+    x => {
+      addInitialItem(
+        "trombone",
+        x,
+        1400
+      );
+    }
+  );
+
+
+  /* 前列ひな壇上 */
+  addInitialItem(
+    "horn",
+    7300,
+    2550
+  );
+
+  addInitialItem(
+    "horn",
+    8300,
+    2600
+  );
+
+  addInitialItem(
+    "euphonium",
+    9300,
+    2600
+  );
+
+  addInitialItem(
+    "euphonium",
+    10350,
+    2600
+  );
+
+
+  /* 左側打楽器 */
+  addInitialItem(
+    "stand",
+    2600,
+    2700
+  );
+
+  addInitialItem(
+    "drumset",
+    3600,
+    2450,
+    -18
+  );
+
+  addInitialItem(
+    "bassDrum",
+    2550,
+    3550,
+    32
+  );
+
+  addInitialItem(
+    "conga",
+    500,
+    3400,
+    -45
+  );
+
+  addInitialItem(
+    "bongo",
+    450,
+    4700,
+    -45
+  );
+
+  addInitialItem(
+    "snare",
+    1700,
+    4200
+  );
+
+  addInitialItem(
+    "vibraphone",
+    350,
+    5700,
+    -55
+  );
+
+  addInitialItem(
+    "marimba",
+    1550,
+    5650,
+    -60
+  );
+
+
+  /* 木管・サックス */
+  addInitialItem(
+    "flute",
+    5850,
+    3600
+  );
+
+  addInitialItem(
+    "flute",
+    4650,
+    4000
+  );
+
+  addInitialItem(
+    "flute",
+    3750,
+    4850
+  );
+
+  addInitialItem(
+    "altoSax",
+    7000,
+    3650
+  );
+
+  addInitialItem(
+    "altoSax",
+    8150,
+    3900
+  );
+
+  addInitialItem(
+    "clarinet",
+    5900,
+    4750
+  );
+
+  addInitialItem(
+    "clarinet",
+    6900,
+    4750
+  );
+
+  addInitialItem(
+    "clarinet",
+    4950,
+    5250
+  );
+
+  addInitialItem(
+    "clarinet",
+    7800,
+    5350
+  );
+
+  addInitialItem(
+    "clarinet",
+    3950,
+    5950
+  );
+
+  addInitialItem(
+    "clarinet",
+    8400,
+    6200
+  );
+
+  addInitialItem(
+    "tenorSax",
+    9000,
+    4700
+  );
+
+  addInitialItem(
+    "baritoneSax",
+    10050,
+    5450
+  );
+
+  addInitialItem(
+    "tuba",
+    10750,
+    4150
+  );
+
+
+  /* 指揮者 */
+  addInitialItem(
+    "conductor",
+    5950,
+    6200
+  );
+
+
+  keepAllInsideStage();
+
+  render();
+
+  showEditor();
+}
+
+
 /* =============================
    保存
 ============================= */
@@ -4013,7 +4422,7 @@ const MANUAL_SAVE_KEY =
   "windBandStageLayoutV7";
 
 const AUTO_SAVE_KEY =
-  "windBandStageLayoutAutoV1";
+  "windBandStageLayoutAutoV2";
 
 let autoSaveEnabled = true;
 let autoSaveTimer = null;
@@ -5802,10 +6211,13 @@ const restoredAutoSave =
   restoreAutoLayout();
 
 if(
-  !restoredAutoSave &&
-  autoSaveEnabled
+  !restoredAutoSave
 ){
-  scheduleAutoSave();
+  initializeDefaultLayout();
+
+  if(autoSaveEnabled){
+    scheduleAutoSave();
+  }
 }
 
 if(isMobileLayout()){
