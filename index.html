@@ -135,8 +135,26 @@ input[type="range"]{padding:0}
 .woodButton{border-left:5px solid #8eb5d9}
 .brassButton{border-left:5px solid #e9ca67}
 .percButton{border-left:5px solid #ce7a9e}
+.chorusButton{border-left:5px solid #9fc7b0}
+.stringsButton{border-left:5px solid #b8c99a}
+.electronicButton{border-left:5px solid #d7a86e}
 .riserButton{border-left:5px solid #858b92}
 .pianoButton{border-left:5px solid #333}
+
+.historyActions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  margin:0 0 10px;
+}
+
+.historyActions button{padding:8px}
+
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  transform:none !important;
+}
 
 .primary{
   color:white;
@@ -328,6 +346,21 @@ input[type="range"]{padding:0}
 .brass .itemBody{
   border-radius:2px;
   background:#e9ca67;
+}
+
+.strings .itemBody{
+  border-radius:2px;
+  background:#b8c99a;
+}
+
+.electronic .itemBody{
+  border-radius:2px;
+  background:#d7a86e;
+}
+
+.chorus .itemBody{
+  border-radius:50%;
+  background:#9fc7b0;
 }
 
 .percussion .itemBody{
@@ -983,6 +1016,970 @@ input[type="range"]{padding:0}
   font-weight:700;
 }
 
+
+/* 入力中はモバイルパネルを維持 */
+@media (max-width:950px), (max-width:1200px) and (pointer:coarse){
+  .leftPanel:focus-within,
+  .rightPanel:focus-within{
+    visibility:visible !important;
+    pointer-events:auto !important;
+  }
+}
+
+
+/* =============================
+   舞台配置図スタイル（デスクトップ）
+============================= */
+
+.planTopBar,
+.planBottomBar{
+  display:none;
+}
+
+@media (min-width:1201px){
+
+  html,body{
+    background:#f1eee6;
+  }
+
+  body{
+    overflow:hidden;
+  }
+
+  header{
+    display:none;
+  }
+
+  .planTopBar{
+    display:grid;
+    grid-template-columns:260px 1fr 180px 240px;
+    align-items:stretch;
+    height:64px;
+    border-bottom:1px solid #c8c2b7;
+    background:#f7f3ea;
+    color:#111;
+  }
+
+  .planTopCell{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width:0;
+    padding:8px 12px;
+    border-right:1px solid #c8c2b7;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .planTopCell:last-child{
+    border-right:0;
+  }
+
+  .planVenue{
+    font-size:20px;
+    font-weight:600;
+  }
+
+  .planTitle{
+    font-size:34px;
+    font-weight:800;
+    letter-spacing:.08em;
+  }
+
+  .planPart{
+    font-size:20px;
+    font-weight:700;
+  }
+
+  .planDate{
+    font-size:22px;
+    font-weight:700;
+  }
+
+  .app{
+    grid-template-columns:170px 1fr 250px;
+    height:calc(100vh - 64px - 48px);
+    background:#f7f3ea;
+  }
+
+  .panel{
+    background:#f5f1e8;
+    border-color:#d6d0c5;
+  }
+
+  .leftPanel{
+    padding:10px 9px;
+  }
+
+  .rightPanel{
+    padding:10px;
+  }
+
+  .leftPanel h2,
+  .leftPanel h3,
+  .rightPanel h2,
+  .rightPanel h3{
+    margin-top:8px;
+    padding:5px 6px;
+    border:0;
+    border-radius:4px;
+    background:#e9e3d8;
+    text-align:center;
+    font-size:12px;
+  }
+
+  .leftPanel label,
+  .rightPanel label{
+    font-size:10px;
+  }
+
+  .instrumentButton{
+    margin:3px 0;
+    padding:6px 7px;
+    border-radius:4px;
+    font-size:11px;
+  }
+
+  .workspace{
+    position:relative;
+    padding:34px 34px 58px;
+    background:#faf7ef;
+  }
+
+  .stageHolder{
+    min-width:1040px;
+    min-height:640px;
+    align-items:flex-start;
+  }
+
+  #stage{
+    border:2px solid #676767;
+    background-color:#fbf8ee;
+    box-shadow:none;
+  }
+
+  .stageLabel.stageBack{
+    top:-26px;
+    color:#111;
+    font-size:16px;
+    letter-spacing:0;
+  }
+
+  .stageLabel.stageFront{
+    bottom:-52px;
+    color:#111;
+    font-size:28px;
+    letter-spacing:1.2em;
+    transform:translateX(-38%);
+  }
+
+  .itemBody{
+    box-shadow:none;
+  }
+
+  .planBottomBar{
+    display:grid;
+    grid-template-columns:220px 1fr 1fr;
+    height:48px;
+    border-top:1px solid #c8c2b7;
+    background:#f7f3ea;
+    color:#111;
+  }
+
+  .planBottomCell{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    border-right:1px solid #c8c2b7;
+    font-size:13px;
+  }
+
+  .planBottomCell:last-child{
+    border-right:0;
+  }
+
+  .planOrgBadge{
+    position:absolute;
+    right:42px;
+    bottom:10px;
+    min-width:320px;
+    padding:8px 18px;
+    border:1px dashed #777;
+    background:rgba(255,255,255,.84);
+    text-align:center;
+    font-size:16px;
+    font-weight:700;
+    z-index:50;
+  }
+
+  .printHeader{
+    display:none !important;
+  }
+}
+
+@media print{
+  .planTopBar,
+  .planBottomBar,
+  .planOrgBadge{
+    display:none !important;
+  }
+}
+
+
+/* =============================
+   横全画面・PDF共通の配置図シート
+============================= */
+
+.overviewPlanSheet{
+  position:absolute;
+  inset:0;
+  display:grid;
+  grid-template-rows:44px 1fr 34px;
+  background:#f7f3ea;
+  color:#111;
+}
+
+.overviewPlanTop{
+  display:grid;
+  grid-template-columns:220px 1fr 120px 170px;
+  border-bottom:1px solid #c8c2b7;
+  background:#f7f3ea;
+}
+
+.overviewPlanTop > div{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  padding:4px 8px;
+  border-right:1px solid #c8c2b7;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.overviewPlanTop > div:last-child{
+  border-right:0;
+}
+
+.overviewVenue{
+  font-size:14px;
+  font-weight:600;
+}
+
+.overviewTitle{
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:.06em;
+}
+
+.overviewPart{
+  font-size:14px;
+  font-weight:700;
+}
+
+.overviewDate{
+  font-size:15px;
+  font-weight:700;
+}
+
+.overviewStageArea{
+  position:relative;
+  overflow:hidden;
+  background:#faf7ef;
+}
+
+.overviewStageHost{
+  position:absolute;
+  inset:8px 8px 48px 8px;
+  overflow:hidden;
+}
+
+.overviewStageHost #stage{
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  margin:0 !important;
+  border-width:2px !important;
+  box-shadow:none !important;
+  transform-origin:center center !important;
+  touch-action:none !important;
+}
+
+.overviewOrg{
+  position:absolute;
+  right:18px;
+  bottom:10px;
+  min-width:260px;
+  max-width:45%;
+  padding:6px 12px;
+  border:1px dashed #777;
+  background:rgba(255,255,255,.9);
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+}
+
+.overviewPlanBottom{
+  display:grid;
+  grid-template-columns:170px 1fr 1fr;
+  border-top:1px solid #c8c2b7;
+  background:#f7f3ea;
+}
+
+.overviewPlanBottom > div{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border-right:1px solid #c8c2b7;
+  font-size:11px;
+}
+
+.overviewPlanBottom > div:last-child{
+  border-right:0;
+}
+
+/* iPhone横向きは上下面を圧縮してステージを大きく */
+@media (max-width:950px) and (orientation:landscape){
+  .overviewPlanSheet{
+    grid-template-rows:34px 1fr 28px;
+  }
+
+  .overviewPlanTop{
+    grid-template-columns:150px 1fr 90px 130px;
+  }
+
+  .overviewVenue{
+    font-size:10px;
+  }
+
+  .overviewTitle{
+    font-size:16px;
+  }
+
+  .overviewPart,
+  .overviewDate{
+    font-size:10px;
+  }
+
+  .overviewStageHost{
+    inset:4px 4px 36px 4px;
+  }
+
+  .overviewOrg{
+    right:8px;
+    bottom:5px;
+    min-width:190px;
+    padding:4px 8px;
+    font-size:9px;
+  }
+
+  .overviewPlanBottom{
+    grid-template-columns:110px 1fr 1fr;
+  }
+
+  .overviewPlanBottom > div{
+    font-size:8px;
+  }
+}
+
+/* iPad横向き */
+@media (min-width:951px) and (max-width:1366px) and (pointer:coarse) and (orientation:landscape){
+  .overviewPlanSheet{
+    grid-template-rows:42px 1fr 32px;
+  }
+
+  .overviewPlanTop{
+    grid-template-columns:200px 1fr 110px 160px;
+  }
+
+  .overviewTitle{
+    font-size:21px;
+  }
+
+  .overviewStageHost{
+    inset:6px 6px 44px 6px;
+  }
+}
+
+/* PDFはA4横1枚にシートごと収める */
+@media print{
+  @page{
+    size:A4 landscape;
+    margin:5mm;
+  }
+
+  html,body{
+    width:100% !important;
+    height:auto !important;
+    overflow:visible !important;
+    background:white !important;
+  }
+
+  body{
+    transform:none !important;
+  }
+
+  header,
+  .leftPanel,
+  .rightPanel,
+  .mobileDock,
+  .mobileShade,
+  .planTopBar,
+  .planBottomBar,
+  .planOrgBadge,
+  .overviewExitButton{
+    display:none !important;
+  }
+
+  .app{
+    display:none !important;
+  }
+
+  .overviewLayer{
+    display:block !important;
+    position:static !important;
+    width:auto !important;
+    height:auto !important;
+    background:white !important;
+  }
+
+  .overviewPlanSheet{
+    position:relative !important;
+    inset:auto !important;
+    width:277mm !important;
+    height:190mm !important;
+    margin:0 auto !important;
+    grid-template-rows:14mm 1fr 10mm !important;
+    border:0.4mm solid #777;
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+
+  .overviewPlanTop{
+    grid-template-columns:52mm 1fr 30mm 46mm !important;
+  }
+
+  .overviewVenue{
+    font-size:11pt !important;
+  }
+
+  .overviewTitle{
+    font-size:20pt !important;
+  }
+
+  .overviewPart{
+    font-size:11pt !important;
+  }
+
+  .overviewDate{
+    font-size:11pt !important;
+  }
+
+  .overviewStageArea{
+    overflow:hidden !important;
+  }
+
+  .overviewStageHost{
+    inset:4mm 4mm 14mm 4mm !important;
+  }
+
+  .overviewOrg{
+    right:5mm !important;
+    bottom:3mm !important;
+    min-width:72mm !important;
+    max-width:90mm !important;
+    padding:2mm 4mm !important;
+    font-size:10pt !important;
+  }
+
+  .overviewPlanBottom{
+    grid-template-columns:42mm 1fr 1fr !important;
+  }
+
+  .overviewPlanBottom > div{
+    font-size:9pt !important;
+  }
+
+  .overviewStageHost #stage{
+    border-width:0.5mm !important;
+  }
+
+  .stageItem.selected{
+    outline:none !important;
+  }
+
+  .rotateLine,
+  .rotateHandle{
+    display:none !important;
+  }
+}
+
+
+/* =============================
+   A4横 1枚固定印刷
+============================= */
+@media print{
+
+  @page{
+    size:A4 landscape;
+    margin:0;
+  }
+
+  html,
+  body{
+    margin:0 !important;
+    padding:0 !important;
+    width:297mm !important;
+    height:210mm !important;
+    min-width:297mm !important;
+    min-height:210mm !important;
+    overflow:hidden !important;
+    background:white !important;
+    transform:none !important;
+  }
+
+  body > *{
+    display:none !important;
+  }
+
+  #overviewLayer{
+    display:block !important;
+    position:fixed !important;
+    left:0 !important;
+    top:0 !important;
+    width:297mm !important;
+    height:210mm !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    background:white !important;
+    z-index:999999 !important;
+  }
+
+  #overviewLayer .overviewPlanSheet{
+    display:grid !important;
+    position:absolute !important;
+    left:5mm !important;
+    top:5mm !important;
+    width:287mm !important;
+    height:200mm !important;
+    margin:0 !important;
+    padding:0 !important;
+    grid-template-rows:14mm 1fr 10mm !important;
+    border:0.35mm solid #777 !important;
+    background:#f7f3ea !important;
+    overflow:hidden !important;
+    page-break-before:avoid !important;
+    page-break-after:avoid !important;
+    page-break-inside:avoid !important;
+    break-before:avoid-page !important;
+    break-after:avoid-page !important;
+    break-inside:avoid-page !important;
+  }
+
+  #overviewLayer .overviewPlanTop{
+    display:grid !important;
+    grid-template-columns:52mm 1fr 30mm 46mm !important;
+    height:14mm !important;
+    min-height:14mm !important;
+  }
+
+  #overviewLayer .overviewVenue{
+    font-size:10.5pt !important;
+  }
+
+  #overviewLayer .overviewTitle{
+    font-size:19pt !important;
+    line-height:1 !important;
+  }
+
+  #overviewLayer .overviewPart,
+  #overviewLayer .overviewDate{
+    font-size:10.5pt !important;
+  }
+
+  #overviewLayer .overviewStageArea{
+    display:block !important;
+    position:relative !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    background:#faf7ef !important;
+  }
+
+  #overviewLayer .overviewStageHost{
+    display:block !important;
+    position:absolute !important;
+    left:4mm !important;
+    right:4mm !important;
+    top:3mm !important;
+    bottom:13mm !important;
+    overflow:hidden !important;
+  }
+
+  #overviewLayer .overviewStageHost #stage{
+    position:absolute !important;
+    left:50% !important;
+    top:50% !important;
+    margin:0 !important;
+    border-width:0.45mm !important;
+    box-shadow:none !important;
+    transform-origin:center center !important;
+  }
+
+  #overviewLayer .overviewOrg{
+    display:block !important;
+    position:absolute !important;
+    right:5mm !important;
+    bottom:2.5mm !important;
+    min-width:72mm !important;
+    max-width:100mm !important;
+    padding:1.5mm 4mm !important;
+    font-size:9.5pt !important;
+    border:0.25mm dashed #777 !important;
+    background:white !important;
+  }
+
+  #overviewLayer .overviewPlanBottom{
+    display:grid !important;
+    grid-template-columns:42mm 1fr 1fr !important;
+    height:10mm !important;
+    min-height:10mm !important;
+  }
+
+  #overviewLayer .overviewPlanBottom > div{
+    font-size:8.5pt !important;
+  }
+
+  #overviewExitButton,
+  .rotateLine,
+  .rotateHandle{
+    display:none !important;
+  }
+
+  .stageItem.selected{
+    outline:none !important;
+  }
+}
+
+
+/* =============================
+   PDF安定版：専用A4横1枚ページ
+============================= */
+
+#printPage{
+  display:none !important;
+}
+
+@media print{
+
+  @page{
+    size:A4 landscape;
+    margin:5mm;
+  }
+
+  html,
+  body{
+    margin:0 !important;
+    padding:0 !important;
+    width:auto !important;
+    height:auto !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    overflow:visible !important;
+    background:white !important;
+    transform:none !important;
+  }
+
+  body > *{
+    display:none !important;
+  }
+
+  #printPage{
+    display:grid !important;
+    position:relative !important;
+    width:277mm !important;
+    height:190mm !important;
+    margin:0 auto !important;
+    padding:0 !important;
+    grid-template-rows:14mm 1fr 10mm !important;
+    border:0.35mm solid #777 !important;
+    background:#f7f3ea !important;
+    overflow:hidden !important;
+    page-break-inside:avoid !important;
+    page-break-after:avoid !important;
+    break-inside:avoid-page !important;
+  }
+
+  #printPage .printPlanTop{
+    display:grid !important;
+    grid-template-columns:50mm 1fr 28mm 44mm !important;
+    border-bottom:0.3mm solid #aaa;
+  }
+
+  #printPage .printPlanTop > div{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    min-width:0 !important;
+    padding:1.5mm 2mm !important;
+    border-right:0.3mm solid #aaa;
+    overflow:hidden !important;
+    white-space:nowrap !important;
+    text-overflow:ellipsis !important;
+  }
+
+  #printPage .printPlanTop > div:last-child{
+    border-right:0;
+  }
+
+  #printPage .printVenue{
+    font-size:10pt !important;
+    font-weight:600 !important;
+  }
+
+  #printPage .printTitle{
+    font-size:18pt !important;
+    font-weight:800 !important;
+    letter-spacing:.04em !important;
+  }
+
+  #printPage .printPart,
+  #printPage .printDate{
+    font-size:10pt !important;
+    font-weight:700 !important;
+  }
+
+  #printPage .printStageArea{
+    position:relative !important;
+    overflow:hidden !important;
+    background:#faf7ef !important;
+  }
+
+  #printPage .printStageHost{
+    position:absolute !important;
+    left:4mm !important;
+    right:4mm !important;
+    top:3mm !important;
+    bottom:13mm !important;
+    overflow:hidden !important;
+  }
+
+  #printPage .printStageHost > .printStageClone{
+    position:absolute !important;
+    left:50% !important;
+    top:50% !important;
+    margin:0 !important;
+    transform-origin:center center !important;
+    box-shadow:none !important;
+    border-width:0.45mm !important;
+  }
+
+  #printPage .printStageClone .stageItem.selected{
+    outline:none !important;
+  }
+
+  #printPage .printStageClone .rotateLine,
+  #printPage .printStageClone .rotateHandle{
+    display:none !important;
+  }
+
+  #printPage .printOrg{
+    position:absolute !important;
+    right:5mm !important;
+    bottom:2.5mm !important;
+    min-width:70mm !important;
+    max-width:96mm !important;
+    padding:1.5mm 4mm !important;
+    border:0.25mm dashed #777 !important;
+    background:white !important;
+    text-align:center !important;
+    font-size:9pt !important;
+    font-weight:700 !important;
+  }
+
+  #printPage .printPlanBottom{
+    display:grid !important;
+    grid-template-columns:40mm 1fr 1fr !important;
+    border-top:0.3mm solid #aaa;
+  }
+
+  #printPage .printPlanBottom > div{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:2mm !important;
+    border-right:0.3mm solid #aaa;
+    font-size:8.5pt !important;
+  }
+
+  #printPage .printPlanBottom > div:last-child{
+    border-right:0;
+  }
+}
+
+
+/* =============================
+   iPhone / iPad PDF 最終安定版
+   画面で正常な「俯瞰表示」をそのままA4横1枚へ
+============================= */
+@media print{
+
+  @page{
+    size:A4 landscape;
+    margin:0;
+  }
+
+  html,
+  body{
+    margin:0 !important;
+    padding:0 !important;
+    width:297mm !important;
+    height:210mm !important;
+    min-width:297mm !important;
+    min-height:210mm !important;
+    max-width:297mm !important;
+    max-height:210mm !important;
+    overflow:hidden !important;
+    background:white !important;
+    transform:none !important;
+  }
+
+  /*
+    Safariでは以前の @media print の #overviewLayer 指定が
+    body > * の非表示より強く残ることがあるため、
+    印刷する要素をここで明示的に一本化。
+  */
+  body > *{
+    display:none !important;
+  }
+
+  #overviewLayer{
+    display:block !important;
+    position:absolute !important;
+    left:0 !important;
+    top:0 !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:297mm !important;
+    height:210mm !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    background:white !important;
+    z-index:999999 !important;
+    page-break-before:avoid !important;
+    page-break-after:avoid !important;
+    page-break-inside:avoid !important;
+    break-before:avoid-page !important;
+    break-after:avoid-page !important;
+    break-inside:avoid-page !important;
+  }
+
+  #overviewLayer .overviewPlanSheet{
+    display:grid !important;
+    position:absolute !important;
+    left:5mm !important;
+    top:5mm !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:287mm !important;
+    height:200mm !important;
+    margin:0 !important;
+    padding:0 !important;
+    grid-template-rows:14mm 1fr 10mm !important;
+    border:0.35mm solid #777 !important;
+    background:#f7f3ea !important;
+    overflow:hidden !important;
+  }
+
+  #overviewLayer .overviewPlanTop{
+    display:grid !important;
+    grid-template-columns:50mm 1fr 28mm 44mm !important;
+    height:14mm !important;
+    min-height:14mm !important;
+  }
+
+  #overviewLayer .overviewVenue{
+    font-size:10pt !important;
+  }
+
+  #overviewLayer .overviewTitle{
+    font-size:18pt !important;
+    line-height:1 !important;
+  }
+
+  #overviewLayer .overviewPart,
+  #overviewLayer .overviewDate{
+    font-size:10pt !important;
+  }
+
+  #overviewLayer .overviewStageArea{
+    display:block !important;
+    position:relative !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    background:#faf7ef !important;
+  }
+
+  #overviewLayer .overviewStageHost{
+    display:block !important;
+    position:absolute !important;
+    left:4mm !important;
+    right:4mm !important;
+    top:3mm !important;
+    bottom:13mm !important;
+    overflow:hidden !important;
+  }
+
+  #overviewLayer .overviewStageHost #stage{
+    display:block !important;
+    position:absolute !important;
+    left:50% !important;
+    top:50% !important;
+    margin:0 !important;
+    box-shadow:none !important;
+    transform-origin:center center !important;
+  }
+
+  #overviewLayer .overviewOrg{
+    display:block !important;
+    position:absolute !important;
+    right:5mm !important;
+    bottom:2.5mm !important;
+    min-width:70mm !important;
+    max-width:96mm !important;
+    padding:1.5mm 4mm !important;
+    font-size:9pt !important;
+    background:white !important;
+  }
+
+  #overviewLayer .overviewPlanBottom{
+    display:grid !important;
+    grid-template-columns:40mm 1fr 1fr !important;
+    height:10mm !important;
+    min-height:10mm !important;
+  }
+
+  #overviewLayer .overviewPlanBottom > div{
+    font-size:8.5pt !important;
+  }
+
+  #overviewExitButton,
+  #printPage,
+  .rotateLine,
+  .rotateHandle{
+    display:none !important;
+  }
+
+  .stageItem.selected{
+    outline:none !important;
+  }
+}
+
 </style>
 </head>
 
@@ -1013,6 +2010,14 @@ input[type="range"]{padding:0}
 </header>
 
 
+
+<div class="planTopBar" id="planTopBar">
+  <div class="planTopCell planVenue" id="planVenueDisplay">まほらホール舞台配置図</div>
+  <div class="planTopCell planTitle" id="planTitleDisplay">冬のコンサート</div>
+  <div class="planTopCell planPart" id="planPartDisplay">第1・2部</div>
+  <div class="planTopCell planDate" id="planDateDisplay">2026年2月9日</div>
+</div>
+
 <div class="app">
 
 <!-- =============================
@@ -1024,11 +2029,25 @@ input[type="range"]{padding:0}
 <h2>舞台設定</h2>
 
 <h3>演奏会情報</h3>
-<label>演奏会タイトル
-<input id="concertTitleInput" type="text" placeholder="例：第30回 定期演奏会">
+
+<label>会場・配置図名
+<input id="venueNameInput" type="text" value="まほらホール舞台配置図">
 </label>
+
+<label>演奏会タイトル
+<input id="concertTitleInput" type="text" value="冬のコンサート" placeholder="例：第30回 定期演奏会">
+</label>
+
+<label>部・ステージ
+<input id="concertPartInput" type="text" value="第1・2部" placeholder="例：第1部">
+</label>
+
 <label>演奏会日付
-<input id="concertDateInput" type="date">
+<input id="concertDateInput" type="date" value="2026-02-09">
+</label>
+
+<label>団体名
+<input id="organizationInput" type="text" placeholder="例：〇〇高等学校吹奏楽部">
 </label>
 
 <div class="row">
@@ -1079,6 +2098,26 @@ input[type="range"]{padding:0}
 <button class="instrumentButton brassButton" data-add="euphonium">ユーフォニアム　Euph</button>
 <button class="instrumentButton brassButton" data-add="tuba">チューバ　Tub</button>
 
+
+<h3>コーラス</h3>
+
+<button class="instrumentButton chorusButton" data-add="chorusSoprano">ソプラノ　S</button>
+<button class="instrumentButton chorusButton" data-add="chorusAlto">アルト　A</button>
+<button class="instrumentButton chorusButton" data-add="chorusTenor">テナー　T</button>
+<button class="instrumentButton chorusButton" data-add="chorusBaritone">バルトン　Br</button>
+<button class="instrumentButton chorusButton" data-add="chorusBass">バス　B</button>
+
+<h3>弦楽器</h3>
+
+<button class="instrumentButton stringsButton" data-add="violin">バイオリン　Violin</button>
+<button class="instrumentButton stringsButton" data-add="viola">ビオラ　Viola</button>
+<button class="instrumentButton stringsButton" data-add="cello">チェロ　Cello</button>
+<button class="instrumentButton stringsButton" data-add="contrabass">コントラバス　C.B.</button>
+
+<h3>電子楽器</h3>
+
+<button class="instrumentButton electronicButton" data-add="electricGuitar">エレキギター　E.Gt</button>
+<button class="instrumentButton electronicButton" data-add="electricBass">エレキベース　E.Bs</button>
 
 <h3>打楽器</h3>
 
@@ -1150,73 +2189,107 @@ input[type="range"]{padding:0}
 1800×1200 / H600
 </button>
 
+<div class="subBox">
+  <div class="info">幅・奥行・高さを自由に設定して、ひな壇を1枚追加します。</div>
+  <div class="row">
+    <label>幅 mm
+      <input id="customRiserWidth" type="number" min="100" step="50" value="1800">
+    </label>
+    <label>奥行 mm
+      <input id="customRiserDepth" type="number" min="100" step="50" value="1200">
+    </label>
+  </div>
+  <label>高さ mm
+    <input id="customRiserHeight" type="number" min="0" step="50" value="200">
+  </label>
+  <button class="success full" id="customRiserButton" type="button">自由サイズひな壇を追加</button>
+</div>
+
 
 <!-- =============================
      自動作成
 ============================= -->
 
-<h3>ひな壇自動作成</h3>
+<h3>ひな壇自動作成（最大3段）</h3>
 
 <div class="subBox">
 
 <div class="info">
-後列1800×1800と前列1800×1200を、指定枚数で中央揃えして一括作成します。
+各段は「1枚あたりの幅 × 枚数」を合計し、2枚以上でも1つの連結ひな壇として中央揃えで作成します。
 </div>
 
-<label>
-後列 1800×1800 の枚数
-<select id="autoBackCount">
-  <option value="0">なし</option>
-  <option value="1">1枚</option>
-  <option value="2">2枚</option>
-  <option value="3">3枚</option>
-  <option value="4" selected>4枚</option>
-  <option value="5">5枚</option>
-  <option value="6">6枚</option>
-  <option value="7">7枚</option>
+<h3>3段目（舞台奥側）</h3>
+<div class="row">
+<label>1枚幅 mm
+<input id="autoRow3UnitWidth" type="number" min="100" step="50" value="1800">
+</label>
+<label>枚数
+<select id="autoRow3Count">
+  <option value="0">なし</option><option value="1">1枚</option><option value="2">2枚</option>
+  <option value="3">3枚</option><option value="4" selected>4枚</option><option value="5">5枚</option>
+  <option value="6">6枚</option><option value="7">7枚</option>
 </select>
 </label>
+</div>
+<div class="row">
+<label>奥行 mm
+<input id="autoRow3Depth" type="number" min="100" step="50" value="1800">
+</label>
+<label>高さ mm
+<input id="autoRow3Height" type="number" min="0" step="50" value="600">
+</label>
+</div>
 
-<label>
-後列の高さ
-<select id="autoBackHeight">
-  <option value="200">H200</option>
-  <option value="400" selected>H400</option>
-  <option value="600">H600</option>
+<h3>2段目</h3>
+<div class="row">
+<label>1枚幅 mm
+<input id="autoRow2UnitWidth" type="number" min="100" step="50" value="1800">
+</label>
+<label>枚数
+<select id="autoRow2Count">
+  <option value="0">なし</option><option value="1">1枚</option><option value="2">2枚</option>
+  <option value="3">3枚</option><option value="4" selected>4枚</option><option value="5">5枚</option>
+  <option value="6">6枚</option><option value="7">7枚</option>
 </select>
 </label>
+</div>
+<div class="row">
+<label>奥行 mm
+<input id="autoRow2Depth" type="number" min="100" step="50" value="1800">
+</label>
+<label>高さ mm
+<input id="autoRow2Height" type="number" min="0" step="50" value="400">
+</label>
+</div>
 
-<label>
-前列 1800×1200 の枚数
-<select id="autoFrontCount">
-  <option value="0">なし</option>
-  <option value="1">1枚</option>
-  <option value="2">2枚</option>
-  <option value="3">3枚</option>
-  <option value="4" selected>4枚</option>
-  <option value="5">5枚</option>
-  <option value="6">6枚</option>
-  <option value="7">7枚</option>
+<h3>1段目（客席側）</h3>
+<div class="row">
+<label>1枚幅 mm
+<input id="autoRow1UnitWidth" type="number" min="100" step="50" value="1800">
+</label>
+<label>枚数
+<select id="autoRow1Count">
+  <option value="0">なし</option><option value="1">1枚</option><option value="2">2枚</option>
+  <option value="3">3枚</option><option value="4" selected>4枚</option><option value="5">5枚</option>
+  <option value="6">6枚</option><option value="7">7枚</option>
 </select>
 </label>
+</div>
+<div class="row">
+<label>奥行 mm
+<input id="autoRow1Depth" type="number" min="100" step="50" value="1200">
+</label>
+<label>高さ mm
+<input id="autoRow1Height" type="number" min="0" step="50" value="200">
+</label>
+</div>
 
-<label>
-前列の高さ
-<select id="autoFrontHeight">
-  <option value="200" selected>H200</option>
-  <option value="400">H400</option>
-  <option value="600">H600</option>
-</select>
+<label>3段目の舞台奥からの位置 mm
+<input id="autoRiserStartY" type="number" value="300">
 </label>
 
-<label>
-後列の舞台奥からの位置 mm
-<input id="autoBackY" type="number" value="300">
-</label>
-
-<label>
-列間のすき間 mm
-<input id="autoRowGap" type="number" value="0">
+<label>段間のすき間 mm
+<input id="autoRiserGap" type="number" value="0">
 </label>
 
 <button class="success full" id="autoRiserButton">
@@ -1228,11 +2301,10 @@ input[type="range"]{padding:0}
 </button>
 
 <div class="smallNote">
-例：後列4枚なら幅7200mm。前列も4枚なら幅7200mmです。
+例：1枚幅1800mm × 4枚なら、幅7200mmの連結ひな壇1枚として作成します。
 </div>
 
 </div>
-
 
 <h3>その他</h3>
 
@@ -1275,6 +2347,8 @@ input[type="range"]{padding:0}
 
 </div>
 
+<div class="planOrgBadge" id="planOrgDisplay"></div>
+
 </main>
 
 
@@ -1285,6 +2359,11 @@ input[type="range"]{padding:0}
 <aside class="panel rightPanel"><button class="mobileClose" id="closeRightPanelButton" type="button">✕ 編集パネルを閉じる</button>
 
 <h2>選択中のオブジェクト</h2>
+
+<div class="historyActions">
+  <button class="secondary" id="undoButton" type="button" disabled>↶ 戻る</button>
+  <button class="secondary" id="redoButton" type="button" disabled>↷ 進む</button>
+</div>
 
 <div id="noSelection" class="info">
 舞台上の楽器・ひな壇をクリックしてください。
@@ -1493,8 +2572,12 @@ Delete：削除
 </button>
 
 <button class="secondary full" id="pdfButton">
-📄 PDF保存
+📄 PDF保存（A4横1枚）
 </button>
+
+<div class="smallNote">
+表題・舞台配置・団体名・縮尺・作成日をA4横1枚に自動調整します。
+</div>
 
 <label>
 📥 配置ファイルを読み込む
@@ -1513,10 +2596,34 @@ Delete：削除
 
 </div>
 
+<div class="planBottomBar">
+  <div class="planBottomCell">縮尺 <strong>1：30</strong></div>
+  <div class="planBottomCell">作成日 <span id="planCreatedDisplay"></span></div>
+  <div class="planBottomCell">舞台サイズ <strong id="planStageSizeDisplay">12600 mm × 7200 mm</strong></div>
+</div>
 
 
 <div id="overviewLayer" class="overviewLayer" aria-hidden="true">
-  <div id="overviewStageHost" class="overviewStageHost"></div>
+  <div class="overviewPlanSheet">
+    <div class="overviewPlanTop">
+      <div class="overviewVenue" id="overviewVenueDisplay">まほらホール舞台配置図</div>
+      <div class="overviewTitle" id="overviewTitleDisplay">冬のコンサート</div>
+      <div class="overviewPart" id="overviewPartDisplay">第1・2部</div>
+      <div class="overviewDate" id="overviewDateDisplay">2026年2月9日</div>
+    </div>
+
+    <div class="overviewStageArea">
+      <div id="overviewStageHost" class="overviewStageHost"></div>
+      <div class="overviewOrg" id="overviewOrgDisplay"></div>
+    </div>
+
+    <div class="overviewPlanBottom">
+      <div>縮尺 <strong>1：30</strong></div>
+      <div>作成日 <span id="overviewCreatedDisplay"></span></div>
+      <div>舞台サイズ <strong id="overviewStageSizeDisplay">12600 mm × 7200 mm</strong></div>
+    </div>
+  </div>
+
   <button id="overviewExitButton" class="overviewExitButton" type="button">戻る</button>
 </div>
 
@@ -1526,6 +2633,27 @@ Delete：削除
  <button id="mobileInstrumentsButton" type="button">🎺 楽器</button>
  <button id="mobileFitButton" type="button">👁 俯瞰</button>
  <button id="mobileEditButton" type="button">✏️ 編集</button>
+</div>
+
+
+<div id="printPage">
+  <div class="printPlanTop">
+    <div class="printVenue" id="printPlanVenue"></div>
+    <div class="printTitle" id="printPlanTitle"></div>
+    <div class="printPart" id="printPlanPart"></div>
+    <div class="printDate" id="printPlanDate"></div>
+  </div>
+
+  <div class="printStageArea">
+    <div class="printStageHost" id="printStageHost"></div>
+    <div class="printOrg" id="printPlanOrg"></div>
+  </div>
+
+  <div class="printPlanBottom">
+    <div>縮尺 <strong>1：30</strong></div>
+    <div>作成日 <span id="printPlanCreated"></span></div>
+    <div>舞台サイズ <strong id="printPlanStageSize"></strong></div>
+  </div>
 </div>
 
 <script>
@@ -1566,6 +2694,207 @@ let items = [];
 
 let nextId = 1;
 let selectedId = null;
+
+
+/* =============================
+   戻る・進む履歴
+============================= */
+
+const historyState = {
+  snapshots:[],
+  index:-1,
+  ready:false,
+  restoring:false,
+  limit:100
+};
+
+function makeHistorySnapshot(){
+  return {
+    stageWidthMM,
+    stageDepthMM,
+    nextId,
+    selectedId,
+    items:JSON.parse(JSON.stringify(items))
+  };
+}
+
+function updateHistoryButtons(){
+  const undoButton =
+    document.getElementById("undoButton");
+
+  const redoButton =
+    document.getElementById("redoButton");
+
+  if(undoButton){
+    undoButton.disabled =
+      historyState.index <= 0;
+  }
+
+  if(redoButton){
+    redoButton.disabled =
+      historyState.index < 0 ||
+      historyState.index >=
+      historyState.snapshots.length - 1;
+  }
+}
+
+function initializeHistory(){
+  historyState.snapshots = [
+    makeHistorySnapshot()
+  ];
+  historyState.index = 0;
+  historyState.ready = true;
+  updateHistoryButtons();
+}
+
+function recordHistory(){
+  if(
+    !historyState.ready ||
+    historyState.restoring
+  ){
+    return;
+  }
+
+  const snapshot =
+    makeHistorySnapshot();
+
+  const serialized =
+    JSON.stringify(snapshot);
+
+  const current =
+    historyState.snapshots[
+      historyState.index
+    ];
+
+  if(
+    current &&
+    JSON.stringify(current) ===
+      serialized
+  ){
+    updateHistoryButtons();
+    return;
+  }
+
+  historyState.snapshots =
+    historyState.snapshots.slice(
+      0,
+      historyState.index + 1
+    );
+
+  historyState.snapshots.push(
+    snapshot
+  );
+
+  if(
+    historyState.snapshots.length >
+    historyState.limit
+  ){
+    historyState.snapshots.shift();
+  }
+
+  historyState.index =
+    historyState.snapshots.length - 1;
+
+  updateHistoryButtons();
+}
+
+function restoreHistorySnapshot(snapshot){
+  if(!snapshot){
+    return;
+  }
+
+  historyState.restoring = true;
+
+  stageWidthMM =
+    Number(snapshot.stageWidthMM) ||
+    12600;
+
+  stageDepthMM =
+    Number(snapshot.stageDepthMM) ||
+    7200;
+
+  items =
+    JSON.parse(
+      JSON.stringify(
+        snapshot.items || []
+      )
+    );
+
+  nextId =
+    Number(snapshot.nextId) || 1;
+
+  selectedId =
+    snapshot.selectedId ?? null;
+
+  document
+  .getElementById("stageWidthInput")
+  .value =
+    stageWidthMM;
+
+  document
+  .getElementById("stageDepthInput")
+  .value =
+    stageDepthMM;
+
+  const displayWidth = 1000;
+  const displayHeight =
+    displayWidth *
+    stageDepthMM /
+    stageWidthMM;
+
+  stage.style.width =
+    displayWidth + "px";
+
+  stage.style.height =
+    displayHeight + "px";
+
+  updateGrid();
+  keepAllInsideStage();
+  render();
+  showEditor();
+  updatePlanHeader();
+
+  if(isMobileLayout()){
+    requestAnimationFrame(
+      fitStageToMobile
+    );
+  }
+
+  historyState.restoring = false;
+  updateHistoryButtons();
+  scheduleAutoSave();
+}
+
+function undoHistory(){
+  if(historyState.index <= 0){
+    return;
+  }
+
+  historyState.index -= 1;
+
+  restoreHistorySnapshot(
+    historyState.snapshots[
+      historyState.index
+    ]
+  );
+}
+
+function redoHistory(){
+  if(
+    historyState.index >=
+    historyState.snapshots.length - 1
+  ){
+    return;
+  }
+
+  historyState.index += 1;
+
+  restoreHistorySnapshot(
+    historyState.snapshots[
+      historyState.index
+    ]
+  );
+}
 
 
 const dragState = {
@@ -1977,6 +3306,83 @@ const presets = {
     depth:650
   },
 
+  chorusSoprano:{
+    name:"S",
+    className:"chorus",
+    width:600,
+    depth:600
+  },
+
+  chorusAlto:{
+    name:"A",
+    className:"chorus",
+    width:600,
+    depth:600
+  },
+
+  chorusTenor:{
+    name:"T",
+    className:"chorus",
+    width:600,
+    depth:600
+  },
+
+  chorusBaritone:{
+    name:"Br",
+    className:"chorus",
+    width:600,
+    depth:600
+  },
+
+  chorusBass:{
+    name:"B",
+    className:"chorus",
+    width:600,
+    depth:600
+  },
+
+  violin:{
+    name:"Violin",
+    className:"strings",
+    width:600,
+    depth:600
+  },
+
+  viola:{
+    name:"Viola",
+    className:"strings",
+    width:600,
+    depth:600
+  },
+
+  cello:{
+    name:"Cello",
+    className:"strings",
+    width:600,
+    depth:600
+  },
+
+  contrabass:{
+    name:"C.B.",
+    className:"strings",
+    width:600,
+    depth:600
+  },
+
+  electricGuitar:{
+    name:"E.Gt",
+    className:"electronic",
+    width:600,
+    depth:600
+  },
+
+  electricBass:{
+    name:"E.Bs",
+    className:"electronic",
+    width:600,
+    depth:600
+  },
+
   drumset:{
     name:"Drum Set",
     className:"percussion drumset",
@@ -2150,11 +3556,15 @@ function applyStageSettings(){
 
   render();
 
+  updatePlanHeader();
+
   if(isMobileLayout()){
     requestAnimationFrame(
       fitStageToMobile
     );
   }
+
+  recordHistory();
 }
 
 
@@ -2258,6 +3668,8 @@ function addPreset(key){
     preset.width,
     preset.depth
   );
+
+  recordHistory();
 }
 
 
@@ -2308,191 +3720,272 @@ function addRiser(
 }
 
 
+function addCustomRiser(){
+
+  const width =
+    Number(
+      document
+      .getElementById("customRiserWidth")
+      .value
+    );
+
+  const depth =
+    Number(
+      document
+      .getElementById("customRiserDepth")
+      .value
+    );
+
+  const height =
+    Number(
+      document
+      .getElementById("customRiserHeight")
+      .value
+    );
+
+  if(
+    !Number.isFinite(width) ||
+    !Number.isFinite(depth) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    depth <= 0 ||
+    height < 0
+  ){
+    alert(
+      "自由サイズひな壇の寸法を確認してください。"
+    );
+    return;
+  }
+
+  if(
+    width > stageWidthMM ||
+    depth > stageDepthMM
+  ){
+    alert(
+      "ひな壇が舞台サイズを超えています。"
+    );
+    return;
+  }
+
+  addRiser(
+    width,
+    depth,
+    height
+  );
+
+  recordHistory();
+}
+
+
 /* =============================
    ひな壇自動作成
 ============================= */
 
 function autoCreateRisers(){
 
-  const backCount =
-    Number(
-      document
-      .getElementById("autoBackCount")
-      .value
-    );
+  const rows = [
+    {
+      number:3,
+      count:Number(
+        document
+        .getElementById("autoRow3Count")
+        .value
+      ),
+      unitWidth:Number(
+        document
+        .getElementById("autoRow3UnitWidth")
+        .value
+      ),
+      depth:Number(
+        document
+        .getElementById("autoRow3Depth")
+        .value
+      ),
+      height:Number(
+        document
+        .getElementById("autoRow3Height")
+        .value
+      )
+    },
+    {
+      number:2,
+      count:Number(
+        document
+        .getElementById("autoRow2Count")
+        .value
+      ),
+      unitWidth:Number(
+        document
+        .getElementById("autoRow2UnitWidth")
+        .value
+      ),
+      depth:Number(
+        document
+        .getElementById("autoRow2Depth")
+        .value
+      ),
+      height:Number(
+        document
+        .getElementById("autoRow2Height")
+        .value
+      )
+    },
+    {
+      number:1,
+      count:Number(
+        document
+        .getElementById("autoRow1Count")
+        .value
+      ),
+      unitWidth:Number(
+        document
+        .getElementById("autoRow1UnitWidth")
+        .value
+      ),
+      depth:Number(
+        document
+        .getElementById("autoRow1Depth")
+        .value
+      ),
+      height:Number(
+        document
+        .getElementById("autoRow1Height")
+        .value
+      )
+    }
+  ];
 
-  const frontCount =
+  const startY =
     Number(
       document
-      .getElementById("autoFrontCount")
-      .value
-    );
-
-  const backHeight =
-    Number(
-      document
-      .getElementById("autoBackHeight")
-      .value
-    );
-
-  const frontHeight =
-    Number(
-      document
-      .getElementById("autoFrontHeight")
-      .value
-    );
-
-  const backY =
-    Number(
-      document
-      .getElementById("autoBackY")
+      .getElementById("autoRiserStartY")
       .value
     );
 
   const gap =
     Number(
       document
-      .getElementById("autoRowGap")
+      .getElementById("autoRiserGap")
       .value
     );
 
-
   if(
-    !Number.isFinite(backY) ||
-    !Number.isFinite(gap)
+    !Number.isFinite(startY) ||
+    !Number.isFinite(gap) ||
+    startY < 0 ||
+    gap < 0
   ){
-    alert("ひな壇位置を確認してください。");
+    alert(
+      "ひな壇の開始位置・段間を確認してください。"
+    );
     return;
   }
 
-
-  /*
-    後列幅
-  */
-
-  const backTotalWidth =
-    backCount * 1800;
-
-
-  /*
-    前列幅
-  */
-
-  const frontTotalWidth =
-    frontCount * 1800;
-
-
   if(
-    backTotalWidth >
-    stageWidthMM
+    rows.some(
+      row =>
+        !Number.isFinite(row.count) ||
+        !Number.isFinite(row.unitWidth) ||
+        !Number.isFinite(row.depth) ||
+        !Number.isFinite(row.height) ||
+        row.count < 0 ||
+        row.unitWidth <= 0 ||
+        row.depth <= 0 ||
+        row.height < 0
+    )
   ){
-    alert("後列のひな壇が舞台幅を超えています。");
+    alert(
+      "各段の幅・枚数・奥行・高さを確認してください。"
+    );
     return;
   }
 
-
-  if(
-    frontTotalWidth >
-    stageWidthMM
-  ){
-    alert("前列のひな壇が舞台幅を超えています。");
-    return;
-  }
-
-
-  const frontY =
-    backY +
-    (backCount > 0 ? 1800 : 0) +
-    gap;
-
-
-  if(
-    frontCount > 0 &&
-    frontY + 1200 >
-    stageDepthMM
-  ){
-    alert("前列のひな壇が舞台奥行を超えています。");
-    return;
-  }
-
-
-  if(
-    backCount > 0 &&
-    backY + 1800 >
-    stageDepthMM
-  ){
-    alert("後列のひな壇が舞台奥行を超えています。");
-    return;
-  }
-
-
-  /*
-    中央揃え
-  */
-
-  const backStartX =
-    (
-      stageWidthMM -
-      backTotalWidth
-    ) / 2;
-
-
-  const frontStartX =
-    (
-      stageWidthMM -
-      frontTotalWidth
-    ) / 2;
-
-
-  /*
-    後列
-  */
-
-  for(
-    let i=0;
-    i<backCount;
-    i++
-  ){
-
-    addRiser(
-      1800,
-      1800,
-      backHeight,
-      backStartX + i*1800,
-      backY
+  const activeRows =
+    rows.filter(
+      row =>
+        row.count > 0
     );
 
+  if(activeRows.length === 0){
+    alert(
+      "作成するひな壇の枚数を指定してください。"
+    );
+    return;
   }
 
-
-  /*
-    前列
-  */
+  let currentY =
+    startY;
 
   for(
-    let i=0;
-    i<frontCount;
-    i++
+    const row of activeRows
   ){
+    const totalWidth =
+      row.unitWidth *
+      row.count;
 
-    addRiser(
-      1800,
-      1200,
-      frontHeight,
-      frontStartX + i*1800,
-      frontY
-    );
+    if(
+      totalWidth >
+      stageWidthMM
+    ){
+      alert(
+        row.number +
+        "段目のひな壇が舞台幅を超えています。"
+      );
+      return;
+    }
 
+    if(
+      currentY +
+      row.depth >
+      stageDepthMM
+    ){
+      alert(
+        row.number +
+        "段目のひな壇が舞台奥行を超えています。"
+      );
+      return;
+    }
+
+    currentY +=
+      row.depth +
+      gap;
   }
 
+  currentY =
+    startY;
+
+  activeRows.forEach(
+    row => {
+      const totalWidth =
+        row.unitWidth *
+        row.count;
+
+      const x =
+        (
+          stageWidthMM -
+          totalWidth
+        ) / 2;
+
+      addRiser(
+        totalWidth,
+        row.depth,
+        row.height,
+        x,
+        currentY
+      );
+
+      currentY +=
+        row.depth +
+        gap;
+    }
+  );
 
   selectedId = null;
 
   render();
-
   showEditor();
+  recordHistory();
 }
-
 
 /* =============================
    ひな壇だけ削除
@@ -2534,6 +4027,8 @@ function deleteAllRisers(){
   render();
 
   showEditor();
+
+  recordHistory();
 }
 
 
@@ -2596,6 +4091,8 @@ function addTimpaniSet(){
 
 
   render();
+
+  recordHistory();
 }
 
 
@@ -2621,6 +4118,8 @@ function addCustomItem(){
     1000,
     700
   );
+
+  recordHistory();
 }
 
 
@@ -3032,9 +4531,16 @@ stage.addEventListener(
 
 function finishPointer(){
 
+  const hadOperation =
+    dragState.mode !== null;
+
   dragState.mode = null;
   dragState.id = null;
   dragState.pointerId = null;
+
+  if(hadOperation){
+    recordHistory();
+  }
 }
 
 
@@ -3487,6 +4993,8 @@ function applyEditor(){
   render();
 
   showEditor();
+
+  recordHistory();
 }
 
 
@@ -3517,6 +5025,8 @@ function rotate90(){
   render();
 
   showEditor();
+
+  recordHistory();
 }
 
 
@@ -3558,6 +5068,8 @@ function duplicateSelected(){
   render();
 
   showEditor();
+
+  recordHistory();
 }
 
 
@@ -3587,6 +5099,8 @@ function deleteSelected(){
   render();
 
   showEditor();
+
+  recordHistory();
 }
 
 
@@ -3615,6 +5129,8 @@ function toggleRiserLock(){
   render();
 
   showEditor();
+
+  recordHistory();
 }
 
 
@@ -3636,6 +5152,8 @@ function unlockAllRisers(){
   render();
 
   showEditor();
+
+  recordHistory();
 }
 
 
@@ -3679,10 +5197,39 @@ document.addEventListener(
   "keydown",
   event => {
 
-    if(
+    const editingControl =
       event.target instanceof HTMLInputElement ||
-      event.target instanceof HTMLSelectElement
+      event.target instanceof HTMLSelectElement ||
+      event.target instanceof HTMLTextAreaElement ||
+      event.target.isContentEditable;
+
+    if(
+      !editingControl &&
+      (event.ctrlKey || event.metaKey) &&
+      event.key.toLowerCase() === "z"
     ){
+      if(event.shiftKey){
+        redoHistory();
+      }
+      else{
+        undoHistory();
+      }
+
+      event.preventDefault();
+      return;
+    }
+
+    if(
+      !editingControl &&
+      (event.ctrlKey || event.metaKey) &&
+      event.key.toLowerCase() === "y"
+    ){
+      redoHistory();
+      event.preventDefault();
+      return;
+    }
+
+    if(editingControl){
       return;
     }
 
@@ -3757,6 +5304,8 @@ document.addEventListener(
     render();
 
     showEditor();
+
+    recordHistory();
 
     event.preventDefault();
   }
@@ -3967,9 +5516,639 @@ function clearBackground(){
 }
 
 
+
+/* =============================
+   初期配置
+   2026演奏会レイアウト
+============================= */
+
+function initializeDefaultLayout(){
+
+  items = [];
+  nextId = 1;
+  selectedId = null;
+
+  const addInitialItem =
+    (
+      presetKey,
+      x,
+      y,
+      rotation=0
+    ) => {
+
+      const preset =
+        presets[presetKey];
+
+      if(!preset){
+        return;
+      }
+
+      items.push({
+        id:nextId++,
+        type:"instrument",
+        name:preset.name,
+        className:preset.className,
+        width:preset.width,
+        depth:preset.depth,
+        x,
+        y,
+        rotation,
+        locked:false,
+        riserHeight:0
+      });
+    };
+
+
+  const addInitialRiser =
+    (
+      x,
+      y,
+      width,
+      depth,
+      height
+    ) => {
+
+      items.push({
+        id:nextId++,
+        type:"riser",
+        name:"ひな壇 H" + height,
+        className:
+          getRiserClass(height),
+        width,
+        depth,
+        x,
+        y,
+        rotation:0,
+        locked:true,
+        riserHeight:height
+      });
+    };
+
+
+  const addInitialTimpani =
+    (
+      x,
+      y,
+      diameter
+    ) => {
+
+      items.push({
+        id:nextId++,
+        type:"instrument",
+        name:"Timp.",
+        className:
+          "percussion timpani",
+        width:diameter,
+        depth:diameter,
+        x,
+        y,
+        rotation:0,
+        locked:false,
+        riserHeight:0
+      });
+    };
+
+
+  /*
+    後列ひな壇：1800×1800 H400 ×5
+  */
+  [
+    2700,
+    4500,
+    6300,
+    8100,
+    9900
+  ].forEach(
+    x => {
+      addInitialRiser(
+        x,
+        350,
+        1800,
+        1800,
+        400
+      );
+    }
+  );
+
+
+  /*
+    前列ひな壇：1800×1200 H200 ×3
+  */
+  [
+    6300,
+    8100,
+    9900
+  ].forEach(
+    x => {
+      addInitialRiser(
+        x,
+        2100,
+        1800,
+        1200,
+        200
+      );
+    }
+  );
+
+
+  /* ティンパニ */
+  addInitialTimpani(
+    750,
+    200,
+    1100
+  );
+
+  addInitialTimpani(
+    1550,
+    1000,
+    1100
+  );
+
+  addInitialTimpani(
+    250,
+    2050,
+    900
+  );
+
+  addInitialTimpani(
+    1150,
+    2050,
+    950
+  );
+
+
+  /* 後方打楽器 */
+  addInitialItem(
+    "stand",
+    3950,
+    750
+  );
+
+  addInitialItem(
+    "suspendCymbal",
+    5200,
+    650
+  );
+
+  addInitialItem(
+    "cymbal",
+    6000,
+    700
+  );
+
+  addInitialItem(
+    "glockenspiel",
+    6950,
+    650
+  );
+
+  addInitialItem(
+    "xylophone",
+    8550,
+    600
+  );
+
+
+  /* 後列金管 */
+  [
+    3450,
+    4550,
+    5500,
+    6600
+  ].forEach(
+    x => {
+      addInitialItem(
+        "trumpet",
+        x,
+        1400
+      );
+    }
+  );
+
+  [
+    7500,
+    8450,
+    9400,
+    10300
+  ].forEach(
+    x => {
+      addInitialItem(
+        "trombone",
+        x,
+        1400
+      );
+    }
+  );
+
+
+  /* 前列ひな壇上 */
+  addInitialItem(
+    "horn",
+    7300,
+    2550
+  );
+
+  addInitialItem(
+    "horn",
+    8300,
+    2600
+  );
+
+  addInitialItem(
+    "euphonium",
+    9300,
+    2600
+  );
+
+  addInitialItem(
+    "euphonium",
+    10350,
+    2600
+  );
+
+
+  /* 左側打楽器 */
+  addInitialItem(
+    "stand",
+    2600,
+    2700
+  );
+
+  addInitialItem(
+    "drumset",
+    3600,
+    2450,
+    -18
+  );
+
+  addInitialItem(
+    "bassDrum",
+    2550,
+    3550,
+    32
+  );
+
+  addInitialItem(
+    "conga",
+    500,
+    3400,
+    -45
+  );
+
+  addInitialItem(
+    "bongo",
+    450,
+    4700,
+    -45
+  );
+
+  addInitialItem(
+    "snare",
+    1700,
+    4200
+  );
+
+  addInitialItem(
+    "vibraphone",
+    350,
+    5700,
+    -55
+  );
+
+  addInitialItem(
+    "marimba",
+    1550,
+    5650,
+    -60
+  );
+
+
+  /* 木管・サックス */
+  addInitialItem(
+    "flute",
+    5850,
+    3600
+  );
+
+  addInitialItem(
+    "flute",
+    4650,
+    4000
+  );
+
+  addInitialItem(
+    "flute",
+    3750,
+    4850
+  );
+
+  addInitialItem(
+    "altoSax",
+    7000,
+    3650
+  );
+
+  addInitialItem(
+    "altoSax",
+    8150,
+    3900
+  );
+
+  addInitialItem(
+    "clarinet",
+    5900,
+    4750
+  );
+
+  addInitialItem(
+    "clarinet",
+    6900,
+    4750
+  );
+
+  addInitialItem(
+    "clarinet",
+    4950,
+    5250
+  );
+
+  addInitialItem(
+    "clarinet",
+    7800,
+    5350
+  );
+
+  addInitialItem(
+    "clarinet",
+    3950,
+    5950
+  );
+
+  addInitialItem(
+    "clarinet",
+    8400,
+    6200
+  );
+
+  addInitialItem(
+    "tenorSax",
+    9000,
+    4700
+  );
+
+  addInitialItem(
+    "baritoneSax",
+    10050,
+    5450
+  );
+
+  addInitialItem(
+    "tuba",
+    10750,
+    4150
+  );
+
+
+  /* 指揮者 */
+  addInitialItem(
+    "conductor",
+    5950,
+    6200
+  );
+
+
+  keepAllInsideStage();
+
+  render();
+
+  showEditor();
+}
+
+
 /* =============================
    保存
 ============================= */
+
+
+function formatPlanDate(value){
+  if(!value){
+    return "";
+  }
+
+  const parts =
+    value.split("-");
+
+  if(parts.length !== 3){
+    return value;
+  }
+
+  return (
+    Number(parts[0]) + "年" +
+    Number(parts[1]) + "月" +
+    Number(parts[2]) + "日"
+  );
+}
+
+
+function updatePlanHeader(){
+
+  const venue =
+    document.getElementById("venueNameInput");
+
+  const title =
+    document.getElementById("concertTitleInput");
+
+  const part =
+    document.getElementById("concertPartInput");
+
+  const date =
+    document.getElementById("concertDateInput");
+
+  const org = document.getElementById("organizationInput");
+
+  const venueDisplay =
+    document.getElementById("planVenueDisplay");
+
+  const titleDisplay =
+    document.getElementById("planTitleDisplay");
+
+  const partDisplay =
+    document.getElementById("planPartDisplay");
+
+  const dateDisplay =
+    document.getElementById("planDateDisplay");
+
+  const orgDisplay =
+    document.getElementById("planOrgDisplay");
+
+  const stageSizeDisplay =
+    document.getElementById("planStageSizeDisplay");
+
+  const createdDisplay =
+    document.getElementById("planCreatedDisplay");
+
+  const overviewVenueDisplay =
+    document.getElementById("overviewVenueDisplay");
+  const overviewTitleDisplay =
+    document.getElementById("overviewTitleDisplay");
+  const overviewPartDisplay =
+    document.getElementById("overviewPartDisplay");
+  const overviewDateDisplay =
+    document.getElementById("overviewDateDisplay");
+  const overviewOrgDisplay =
+    document.getElementById("overviewOrgDisplay");
+  const overviewCreatedDisplay =
+    document.getElementById("overviewCreatedDisplay");
+  const overviewStageSizeDisplay =
+    document.getElementById("overviewStageSizeDisplay");
+
+  if(venueDisplay){
+    venueDisplay.textContent =
+      venue && venue.value.trim()
+      ? venue.value.trim()
+      : "舞台配置図";
+  }
+
+  if(titleDisplay){
+    titleDisplay.textContent =
+      title && title.value.trim()
+      ? title.value.trim()
+      : "演奏会";
+  }
+
+  if(partDisplay){
+    partDisplay.textContent =
+      part && part.value.trim()
+      ? part.value.trim()
+      : "";
+  }
+
+  if(dateDisplay){
+    dateDisplay.textContent =
+      date
+      ? formatPlanDate(date.value)
+      : "";
+  }
+
+  if(orgDisplay){
+    orgDisplay.textContent =
+      organizationInput
+      ? organizationInput.value.trim()
+      : "";
+  }
+
+  if(stageSizeDisplay){
+    stageSizeDisplay.textContent =
+      stageWidthMM +
+      " mm × " +
+      stageDepthMM +
+      " mm";
+  }
+
+  const now =
+    new Date();
+
+  const createdText =
+    now.toLocaleString(
+      "ja-JP",
+      {
+        year:"numeric",
+        month:"numeric",
+        day:"numeric",
+        hour:"2-digit",
+        minute:"2-digit"
+      }
+    );
+
+  if(createdDisplay){
+    createdDisplay.textContent =
+      createdText;
+  }
+
+  if(overviewVenueDisplay){
+    overviewVenueDisplay.textContent =
+      venueDisplay
+      ? venueDisplay.textContent
+      : "";
+  }
+
+  if(overviewTitleDisplay){
+    overviewTitleDisplay.textContent =
+      titleDisplay
+      ? titleDisplay.textContent
+      : "";
+  }
+
+  if(overviewPartDisplay){
+    overviewPartDisplay.textContent =
+      partDisplay
+      ? partDisplay.textContent
+      : "";
+  }
+
+  if(overviewDateDisplay){
+    overviewDateDisplay.textContent =
+      dateDisplay
+      ? dateDisplay.textContent
+      : "";
+  }
+
+  if(overviewOrgDisplay){
+    overviewOrgDisplay.textContent =
+      organizationInput
+      ? organizationInput.value.trim()
+      : "";
+  }
+
+  if(overviewCreatedDisplay){
+    overviewCreatedDisplay.textContent =
+      createdText;
+  }
+
+  if(overviewStageSizeDisplay){
+    overviewStageSizeDisplay.textContent =
+      stageWidthMM +
+      " mm × " +
+      stageDepthMM +
+      " mm";
+  }
+}
+
+
+[
+  "venueNameInput",
+  "concertTitleInput",
+  "concertPartInput",
+  "concertDateInput",
+  "organizationInput"
+]
+.forEach(
+  id => {
+    const el =
+      document.getElementById(id);
+
+    if(el){
+      el.addEventListener(
+        "input",
+        updatePlanHeader
+      );
+
+      el.addEventListener(
+        "change",
+        () => {
+          updatePlanHeader();
+          syncOrganizationEverywhere();
+        }
+      );
+
+      el.addEventListener(
+        "blur",
+        updatePlanHeader
+      );
+    }
+  }
+);
+
 
 function getSaveData(){
 
@@ -4013,7 +6192,7 @@ const MANUAL_SAVE_KEY =
   "windBandStageLayoutV7";
 
 const AUTO_SAVE_KEY =
-  "windBandStageLayoutAutoV1";
+  "windBandStageLayoutAutoV3";
 
 let autoSaveEnabled = true;
 let autoSaveTimer = null;
@@ -4420,6 +6599,8 @@ function clearAll(){
   render();
 
   showEditor();
+
+  recordHistory();
 }
 
 
@@ -4460,10 +6641,20 @@ document
           Number(button.dataset.riserHeight)
         );
 
+        recordHistory();
+
       }
     );
 
   }
+);
+
+
+document
+.getElementById("customRiserButton")
+.addEventListener(
+  "click",
+  addCustomRiser
 );
 
 
@@ -4560,6 +6751,22 @@ document
 .addEventListener(
   "click",
   unlockAllRisers
+);
+
+
+document
+.getElementById("undoButton")
+.addEventListener(
+  "click",
+  undoHistory
+);
+
+
+document
+.getElementById("redoButton")
+.addEventListener(
+  "click",
+  redoHistory
 );
 
 
@@ -4864,8 +7071,12 @@ workspace.addEventListener(
 
 function preparePrintHeader(){
 
+  const venueInput = document.getElementById("venueNameInput");
   const titleInput = document.getElementById("concertTitleInput");
+  const partInput = document.getElementById("concertPartInput");
   const dateInput = document.getElementById("concertDateInput");
+  const orgInput = document.getElementById("organizationInput");
+
   const printTitle = document.getElementById("printTitle");
   const printConcertDate = document.getElementById("printConcertDate");
   const printMeta = document.getElementById("printMeta");
@@ -4880,84 +7091,1033 @@ function preparePrintHeader(){
   }
 
   if(printConcertDate){
-    if(dateInput && dateInput.value){
-      const parts = dateInput.value.split("-");
-      printConcertDate.textContent =
-        Number(parts[0]) + "年" +
-        Number(parts[1]) + "月" +
-        Number(parts[2]) + "日";
-    }else{
-      printConcertDate.textContent = "";
+    const parts = [];
+
+    if(venueInput && venueInput.value.trim()){
+      parts.push(venueInput.value.trim());
     }
+
+    if(partInput && partInput.value.trim()){
+      parts.push(partInput.value.trim());
+    }
+
+    if(dateInput && dateInput.value){
+      parts.push(formatPlanDate(dateInput.value));
+    }
+
+    printConcertDate.textContent =
+      parts.join("　");
   }
 
   if(printMeta){
+    const org =
+      orgInput
+      ? orgInput.value.trim()
+      : "";
+
+    const orgPrefix =
+      org
+      ? org + "　／　"
+      : "";
+
     printMeta.textContent =
-      "ステージ配置図　／　舞台サイズ：" +
-      stageWidthMM + " × " + stageDepthMM + " mm";
+      orgPrefix +
+      "舞台サイズ：" +
+      stageWidthMM +
+      " × " +
+      stageDepthMM +
+      " mm";
   }
+}
+
+
+
+function fitStageForPrint(){
+
+  if(
+    !overviewStageHost ||
+    !stage
+  ){
+    return;
+  }
+
+  /*
+    A4横1枚用。
+    印刷用ホストの実サイズに対して、
+    舞台全体が必ず収まる倍率を計算する。
+  */
+  const hostRect =
+    overviewStageHost.getBoundingClientRect();
+
+  const availableWidth =
+    Math.max(
+      200,
+      hostRect.width
+    );
+
+  const availableHeight =
+    Math.max(
+      140,
+      hostRect.height
+    );
+
+  const baseWidth =
+    1000;
+
+  const baseHeight =
+    baseWidth *
+    stageDepthMM /
+    stageWidthMM;
+
+  const fittedScale =
+    Math.max(
+      0.10,
+      Math.min(
+        3,
+        Math.min(
+          availableWidth / baseWidth,
+          availableHeight / baseHeight
+        )
+      )
+    );
+
+  stage.style.transform =
+    "translate(-50%,-50%) scale(" +
+    fittedScale +
+    ")";
+}
+
+
+
+
+function syncOrganizationEverywhere(){
+
+  const input =
+    document.getElementById(
+      "organizationInput"
+    );
+
+  const value =
+    input
+    ? input.value.trim()
+    : "";
+
+  [
+    "planOrgDisplay",
+    "overviewOrgDisplay",
+    "printPlanOrg"
+  ].forEach(
+    id => {
+      const el =
+        document.getElementById(id);
+
+      if(el){
+        el.textContent = value;
+      }
+    }
+  );
+}
+
+
+function buildPrintPage(){
+
+  syncOrganizationEverywhere();
+  updatePlanHeader();
+
+  const printStageHost =
+    document.getElementById("printStageHost");
+
+  if(!printStageHost){
+    return;
+  }
+
+  printStageHost.innerHTML = "";
+
+  /*
+    編集中の舞台を複製して印刷専用ページへ置く。
+    元のstageを移動しないので、印刷時に舞台が消える問題を防ぐ。
+  */
+  const clone =
+    stage.cloneNode(true);
+
+  clone.removeAttribute("id");
+  clone.classList.add(
+    "printStageClone"
+  );
+
+  clone.style.width =
+    stage.offsetWidth + "px";
+
+  clone.style.height =
+    stage.offsetHeight + "px";
+
+  clone.style.transform =
+    "translate(-50%,-50%) scale(1)";
+
+  clone.style.transformOrigin =
+    "center center";
+
+  printStageHost.appendChild(
+    clone
+  );
+
+  const venue =
+    document.getElementById("venueNameInput");
+
+  const title =
+    document.getElementById("concertTitleInput");
+
+  const part =
+    document.getElementById("concertPartInput");
+
+  const date =
+    document.getElementById("concertDateInput");
+
+  const org =
+    document.getElementById("organizationInput");
+
+  const setText =
+    (id,value) => {
+      const el =
+        document.getElementById(id);
+
+      if(el){
+        el.textContent =
+          value || "";
+      }
+    };
+
+  setText(
+    "printPlanVenue",
+    venue ? venue.value.trim() : ""
+  );
+
+  setText(
+    "printPlanTitle",
+    title ? title.value.trim() : ""
+  );
+
+  setText(
+    "printPlanPart",
+    part ? part.value.trim() : ""
+  );
+
+  setText(
+    "printPlanDate",
+    date
+      ? formatPlanDate(date.value)
+      : ""
+  );
+
+  setText(
+    "printPlanOrg",
+    org ? org.value.trim() : ""
+  );
+
+  const now =
+    new Date();
+
+  setText(
+    "printPlanCreated",
+    now.toLocaleString(
+      "ja-JP",
+      {
+        year:"numeric",
+        month:"numeric",
+        day:"numeric",
+        hour:"2-digit",
+        minute:"2-digit"
+      }
+    )
+  );
+
+  setText(
+    "printPlanStageSize",
+    stageWidthMM +
+    " mm × " +
+    stageDepthMM +
+    " mm"
+  );
+}
+
+
+function fitPrintStage(){
+
+  const host =
+    document.getElementById(
+      "printStageHost"
+    );
+
+  const clone =
+    host
+    ? host.querySelector(
+        ".printStageClone"
+      )
+    : null;
+
+  if(
+    !host ||
+    !clone
+  ){
+    return;
+  }
+
+  const baseWidth =
+    stage.offsetWidth || 1000;
+
+  const baseHeight =
+    stage.offsetHeight ||
+    (
+      1000 *
+      stageDepthMM /
+      stageWidthMM
+    );
+
+  /*
+    A4横の印刷専用ステージ領域。
+    CSSのmm指定に合わせて、実寸ベースで縮尺を決める。
+    1mm = 96 / 25.4 px。
+  */
+  const MM_TO_PX =
+    96 / 25.4;
+
+  const printableWidthMM =
+    277 - 8;   // A4本文幅277mm - 左右4mm×2
+
+  const printableHeightMM =
+    166 - 16;  // 中央領域約166mm - 上3mm - 下13mm
+
+  const availableWidth =
+    printableWidthMM *
+    MM_TO_PX;
+
+  const availableHeight =
+    printableHeightMM *
+    MM_TO_PX;
+
+  const scale =
+    Math.min(
+      availableWidth / baseWidth,
+      availableHeight / baseHeight
+    ) * 0.97;
+
+  clone.style.transform =
+    "translate(-50%,-50%) scale(" +
+    scale +
+    ")";
+}
+
+
+
+function fitOverviewStageForPrint(){
+
+  if(
+    !overviewStageHost ||
+    !stage
+  ){
+    return;
+  }
+
+  const hostRect =
+    overviewStageHost.getBoundingClientRect();
+
+  const baseWidth =
+    stage.offsetWidth || 1000;
+
+  const baseHeight =
+    stage.offsetHeight ||
+    (
+      1000 *
+      stageDepthMM /
+      stageWidthMM
+    );
+
+  if(
+    hostRect.width <= 0 ||
+    hostRect.height <= 0 ||
+    baseWidth <= 0 ||
+    baseHeight <= 0
+  ){
+    return;
+  }
+
+  const scale =
+    Math.min(
+      hostRect.width / baseWidth,
+      hostRect.height / baseHeight
+    ) * 0.985;
+
+  stage.style.transform =
+    "translate(-50%,-50%) scale(" +
+    scale +
+    ")";
+}
+
+
+
+function escapePrintText(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+
+
+function buildStandalonePrintHTML(){
+
+  syncOrganizationEverywhere();
+  updatePlanHeader();
+
+  const venueInput =
+    document.getElementById("venueNameInput");
+
+  const titleInput =
+    document.getElementById("concertTitleInput");
+
+  const partInput =
+    document.getElementById("concertPartInput");
+
+  const dateInput =
+    document.getElementById("concertDateInput");
+
+  const orgInput =
+    document.getElementById("organizationInput");
+
+  const venue =
+    venueInput
+    ? venueInput.value.trim()
+    : "";
+
+  const title =
+    titleInput && titleInput.value.trim()
+    ? titleInput.value.trim()
+    : "ステージ配置図";
+
+  const part =
+    partInput
+    ? partInput.value.trim()
+    : "";
+
+  const date =
+    dateInput
+    ? formatPlanDate(dateInput.value)
+    : "";
+
+  const organization =
+    orgInput
+    ? orgInput.value.trim()
+    : "";
+
+  const now =
+    new Date();
+
+  const created =
+    now.toLocaleDateString(
+      "ja-JP",
+      {
+        year:"numeric",
+        month:"long",
+        day:"numeric"
+      }
+    );
+
+
+  const esc =
+    value =>
+      escapePrintText(
+        value
+      );
+
+
+  function itemFill(item){
+
+    const className =
+      String(
+        item.className || ""
+      );
+
+    if(
+      className.includes("woodwind")
+    ){
+      return "#8eb5d9";
+    }
+
+    if(
+      className.includes("brass")
+    ){
+      return "#e9ca67";
+    }
+
+    if(
+      className.includes("strings")
+    ){
+      return "#b8c99a";
+    }
+
+    if(
+      className.includes("electronic")
+    ){
+      return "#d7a86e";
+    }
+
+    if(
+      className.includes("chorus")
+    ){
+      return "#9fc7b0";
+    }
+
+    if(
+      className.includes("conductor")
+    ){
+      return "#50575e";
+    }
+
+    if(
+      className.includes("piano")
+    ){
+      return "#262626";
+    }
+
+    if(
+      item.type === "riser"
+    ){
+      const h =
+        Number(
+          item.riserHeight
+        ) || 0;
+
+      if(h >= 600){
+        return "#868c93";
+      }
+
+      if(h >= 400){
+        return "#a8adb3";
+      }
+
+      return "#cfd2d5";
+    }
+
+    return "#ce7a9e";
+  }
+
+
+  function itemTextColor(item){
+
+    const className =
+      String(
+        item.className || ""
+      );
+
+    if(
+      className.includes("conductor") ||
+      className.includes("piano") ||
+      (
+        item.type === "riser" &&
+        Number(item.riserHeight) >= 600
+      )
+    ){
+      return "#ffffff";
+    }
+
+    return "#111111";
+  }
+
+
+  function renderSvgItem(item){
+
+    const x =
+      Number(item.x) || 0;
+
+    const y =
+      Number(item.y) || 0;
+
+    const width =
+      Math.max(
+        1,
+        Number(item.width) || 1
+      );
+
+    const depth =
+      Math.max(
+        1,
+        Number(item.depth) || 1
+      );
+
+    const rotation =
+      Number(item.rotation) || 0;
+
+    const cx =
+      x + width / 2;
+
+    const cy =
+      y + depth / 2;
+
+    const className =
+      String(
+        item.className || ""
+      );
+
+    const fill =
+      itemFill(item);
+
+    const textColor =
+      itemTextColor(item);
+
+    const label =
+      esc(
+        item.name || ""
+      );
+
+    const fontSize =
+      Math.max(
+        145,
+        Math.min(
+          250,
+          Math.min(
+            width,
+            depth
+          ) * 0.30
+        )
+      );
+
+    let shape = "";
+
+    if(
+      item.type === "riser"
+    ){
+      const h =
+        Number(
+          item.riserHeight
+        ) || 0;
+
+      const patternId =
+        h >= 600
+        ? "riser600"
+        : (
+            h >= 400
+            ? "riser400"
+            : "riser200"
+          );
+
+      shape =
+        `<rect x="${x}" y="${y}" width="${width}" height="${depth}" ` +
+        `fill="url(#${patternId})" stroke="#686d73" stroke-width="28"/>`;
+    }
+    else if(
+      className.includes("timpani") ||
+      className.includes("circlePerc") ||
+      className.includes("chorus")
+    ){
+      shape =
+        `<ellipse cx="${cx}" cy="${cy}" rx="${width/2}" ry="${depth/2}" ` +
+        `fill="${fill}" stroke="#666" stroke-width="22"/>`;
+    }
+    else if(
+      className.includes("doubleCircle")
+    ){
+      shape =
+        `<ellipse cx="${x + width*0.29}" cy="${cy}" rx="${width*0.25}" ry="${depth*0.44}" ` +
+        `fill="${fill}" stroke="#666" stroke-width="22"/>` +
+        `<ellipse cx="${x + width*0.71}" cy="${cy}" rx="${width*0.25}" ry="${depth*0.44}" ` +
+        `fill="${fill}" stroke="#666" stroke-width="22"/>`;
+    }
+    else if(
+      className.includes("piano")
+    ){
+      shape =
+        `<polygon points="` +
+        `${x+width*0.05},${y+depth*0.05} ` +
+        `${x+width*0.63},${y+depth*0.04} ` +
+        `${x+width*0.80},${y+depth*0.09} ` +
+        `${x+width*0.92},${y+depth*0.20} ` +
+        `${x+width*0.98},${y+depth*0.40} ` +
+        `${x+width*0.98},${y+depth*0.70} ` +
+        `${x+width*0.91},${y+depth*0.87} ` +
+        `${x+width*0.76},${y+depth*0.96} ` +
+        `${x+width*0.05},${y+depth*0.96}" ` +
+        `fill="${fill}" stroke="#333" stroke-width="22"/>`;
+    }
+    else{
+      const radius =
+        className.includes("drumset")
+        ? 180
+        : 24;
+
+      shape =
+        `<rect x="${x}" y="${y}" width="${width}" height="${depth}" ` +
+        `rx="${radius}" ry="${radius}" fill="${fill}" stroke="#666" stroke-width="22"/>`;
+    }
+
+    const riserText =
+      item.type === "riser"
+      ? (
+          `<text x="${cx}" y="${y + Math.min(depth*0.17,210)}" ` +
+          `text-anchor="middle" font-size="145" font-weight="700" fill="#222">` +
+          `ひな壇 H${esc(item.riserHeight || "")}</text>`
+        )
+      : "";
+
+    const mainText =
+      item.type === "riser"
+      ? ""
+      : (
+          `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" ` +
+          `font-size="${fontSize}" font-weight="700" fill="${textColor}">${label}</text>`
+        );
+
+    return (
+      `<g transform="rotate(${rotation} ${cx} ${cy})">` +
+      shape +
+      riserText +
+      mainText +
+      `</g>`
+    );
+  }
+
+
+  const svgItems =
+    items
+    .map(
+      renderSvgItem
+    )
+    .join("");
+
+
+  const bgMarkup =
+    (
+      backgroundState &&
+      backgroundState.dataUrl
+    )
+    ? (
+        `<image href="${backgroundState.dataUrl}" x="0" y="0" ` +
+        `width="${stageWidthMM}" height="${stageDepthMM}" ` +
+        `preserveAspectRatio="none" opacity="${Number(backgroundState.opacity || 0.35)}"/>`
+      )
+    : "";
+
+
+  /*
+    印刷は「HTMLレイアウト」ではなく、
+    A4横1枚そのものを1枚のSVGとして描画する。
+    iOS Safariが空白2ページ目を作る原因になる
+    高さ計算・grid・transformを使わない。
+  */
+
+  const pageW = 1120;
+  const pageH = 790;
+
+  const margin = 18;
+
+  const frameX = 24;
+  const frameY = 18;
+  const frameW = pageW - 48;
+  const frameH = pageH - 36;
+
+  const topH = 58;
+  const subH = 42;
+  const footerH = 55;
+
+  const stageX = 42;
+  const stageY =
+    frameY +
+    topH +
+    subH +
+    12;
+
+  const stageW =
+    pageW - 84;
+
+  const stageH =
+    frameY +
+    frameH -
+    footerH -
+    18 -
+    stageY;
+
+  const venueCol = 205;
+  const partCol = 120;
+  const dateCol = 178;
+
+  const titleCol =
+    frameW -
+    venueCol -
+    partCol -
+    dateCol;
+
+  const stageSvg =
+    `<svg x="${stageX}" y="${stageY}" width="${stageW}" height="${stageH}" ` +
+    `viewBox="0 0 ${stageWidthMM} ${stageDepthMM}" preserveAspectRatio="xMidYMid meet">` +
+      `<defs>` +
+        `<pattern id="grid" width="1800" height="1800" patternUnits="userSpaceOnUse">` +
+          `<path d="M1800 0H0V1800" fill="none" stroke="#b8b8b8" stroke-width="18"/>` +
+        `</pattern>` +
+        `<pattern id="riser200" width="180" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">` +
+          `<rect width="90" height="180" fill="#d0d3d6"/>` +
+          `<rect x="90" width="90" height="180" fill="#bdc1c5"/>` +
+        `</pattern>` +
+        `<pattern id="riser400" width="180" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">` +
+          `<rect width="90" height="180" fill="#aeb3b9"/>` +
+          `<rect x="90" width="90" height="180" fill="#999fa6"/>` +
+        `</pattern>` +
+        `<pattern id="riser600" width="180" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(135)">` +
+          `<rect width="90" height="180" fill="#91979e"/>` +
+          `<rect x="90" width="90" height="180" fill="#7d848c"/>` +
+        `</pattern>` +
+      `</defs>` +
+      `<rect x="0" y="0" width="${stageWidthMM}" height="${stageDepthMM}" fill="#faf7ed"/>` +
+      bgMarkup +
+      `<rect x="0" y="0" width="${stageWidthMM}" height="${stageDepthMM}" fill="url(#grid)"/>` +
+      svgItems +
+      `<rect x="14" y="14" width="${stageWidthMM-28}" height="${stageDepthMM-28}" ` +
+      `fill="none" stroke="#444" stroke-width="34"/>` +
+      `<text x="${stageWidthMM/2}" y="220" text-anchor="middle" ` +
+      `font-size="180" fill="#777">舞台奥</text>` +
+    `</svg>`;
+
+
+  const venuePlain =
+    venue
+    .replace(
+      /舞台配置図$/,
+      ""
+    )
+    .trim();
+
+
+  const footerY =
+    frameY +
+    frameH -
+    footerH;
+
+
+  const pageSvg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="790" viewBox="0 0 1120 790">` +
+
+      `<rect x="0" y="0" width="1120" height="790" fill="#ffffff"/>` +
+
+      `<rect x="${frameX}" y="${frameY}" width="${frameW}" height="${frameH}" ` +
+      `fill="#fbf8ef" stroke="#555" stroke-width="2"/>` +
+
+      /* top */
+      `<line x1="${frameX}" y1="${frameY+topH}" x2="${frameX+frameW}" y2="${frameY+topH}" ` +
+      `stroke="#999" stroke-width="1"/>` +
+
+      `<line x1="${frameX+venueCol}" y1="${frameY}" x2="${frameX+venueCol}" y2="${frameY+topH}" ` +
+      `stroke="#999" stroke-width="1"/>` +
+
+      `<line x1="${frameX+venueCol+titleCol}" y1="${frameY}" ` +
+      `x2="${frameX+venueCol+titleCol}" y2="${frameY+topH}" stroke="#999" stroke-width="1"/>` +
+
+      `<line x1="${frameX+venueCol+titleCol+partCol}" y1="${frameY}" ` +
+      `x2="${frameX+venueCol+titleCol+partCol}" y2="${frameY+topH}" stroke="#999" stroke-width="1"/>` +
+
+      `<text x="${frameX + venueCol/2}" y="${frameY+35}" text-anchor="middle" ` +
+      `font-size="15" font-weight="600" fill="#111">${esc(venue)}</text>` +
+
+      `<text x="${frameX + venueCol + titleCol/2}" y="${frameY+38}" text-anchor="middle" ` +
+      `font-size="30" font-weight="800" fill="#111">${esc(title)}</text>` +
+
+      `<text x="${frameX + venueCol + titleCol + partCol/2}" y="${frameY+35}" text-anchor="middle" ` +
+      `font-size="16" font-weight="700" fill="#111">${esc(part)}</text>` +
+
+      `<text x="${frameX + venueCol + titleCol + partCol + dateCol/2}" y="${frameY+35}" text-anchor="middle" ` +
+      `font-size="16" font-weight="700" fill="#111">${esc(date)}</text>` +
+
+      /* sub header */
+      `<line x1="${frameX}" y1="${frameY+topH+subH}" x2="${frameX+frameW}" y2="${frameY+topH+subH}" ` +
+      `stroke="#aaa" stroke-width="1"/>` +
+
+      `<text x="${frameX + frameW*0.17}" y="${frameY+topH+27}" text-anchor="middle" ` +
+      `font-size="14" font-weight="600">会場名：${esc(venuePlain)}</text>` +
+
+      `<text x="${frameX + frameW*0.50}" y="${frameY+topH+27}" text-anchor="middle" ` +
+      `font-size="14" font-weight="600">団体名：${esc(organization)}</text>` +
+
+      `<text x="${frameX + frameW*0.82}" y="${frameY+topH+27}" text-anchor="middle" ` +
+      `font-size="14" font-weight="600">舞台サイズ：${stageWidthMM} × ${stageDepthMM} mm</text>` +
+
+      /* stage */
+      stageSvg +
+
+      `<text x="${pageW/2}" y="${footerY-10}" text-anchor="middle" ` +
+      `font-size="18" font-weight="700" letter-spacing="14">客 席</text>` +
+
+      /* footer */
+      `<line x1="${frameX}" y1="${footerY}" x2="${frameX+frameW}" y2="${footerY}" ` +
+      `stroke="#999" stroke-width="1"/>` +
+
+      `<line x1="${frameX+155}" y1="${footerY}" x2="${frameX+155}" y2="${frameY+frameH}" ` +
+      `stroke="#999" stroke-width="1"/>` +
+
+      `<line x1="${frameX+390}" y1="${footerY}" x2="${frameX+390}" y2="${frameY+frameH}" ` +
+      `stroke="#999" stroke-width="1"/>` +
+
+      `<line x1="${frameX+760}" y1="${footerY}" x2="${frameX+760}" y2="${frameY+frameH}" ` +
+      `stroke="#999" stroke-width="1"/>` +
+
+      `<text x="${frameX+77}" y="${footerY+33}" text-anchor="middle" ` +
+      `font-size="14">縮尺 1：30</text>` +
+
+      `<text x="${frameX+272}" y="${footerY+33}" text-anchor="middle" ` +
+      `font-size="14">作成日：${esc(created)}</text>` +
+
+      `<text x="${frameX+575}" y="${footerY+33}" text-anchor="middle" ` +
+      `font-size="13">※ 舞台サイズは幅 × 奥行です</text>` +
+
+      `<rect x="${frameX+780}" y="${footerY+10}" width="${frameW-800}" height="35" ` +
+      `fill="#fff" stroke="#777" stroke-width="1" stroke-dasharray="5 4"/>` +
+
+      `<text x="${frameX+780+(frameW-800)/2}" y="${footerY+33}" text-anchor="middle" ` +
+      `font-size="14" font-weight="700">${esc(organization)}</text>` +
+
+    `</svg>`;
+
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc(title)} - ステージ配置図</title>
+
+<style>
+@page{
+  size:A4 landscape;
+  margin:0;
+}
+
+html,
+body{
+  margin:0 !important;
+  padding:0 !important;
+  width:100% !important;
+  height:100% !important;
+  overflow:hidden !important;
+  background:#fff !important;
+}
+
+body{
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+}
+
+#printRoot{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+}
+
+#printRoot > svg{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:100vh;
+}
+
+@media print{
+
+  html,
+  body{
+    width:100% !important;
+    height:100% !important;
+    overflow:hidden !important;
+  }
+
+  body{
+    display:block !important;
+  }
+
+  #printRoot{
+    position:fixed !important;
+    left:0 !important;
+    top:0 !important;
+    width:100% !important;
+    height:100% !important;
+    overflow:hidden !important;
+  }
+
+  #printRoot > svg{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+  }
+}
+</style>
+</head>
+
+<body>
+<div id="printRoot">
+${pageSvg}
+</div>
+</body>
+</html>`;
 }
 
 
 function saveAsPDF(){
 
-  /*
-    PDF保存はブラウザ標準の印刷機能を利用。
-    iPad / PCで最も安定する。
-  */
-  preparePrintHeader();
+  syncOrganizationEverywhere();
+  updatePlanHeader();
 
-  const previousScreenScale =
-    screenScale;
+  const printWindow =
+    window.open(
+      "",
+      "_blank"
+    );
 
-  const previousViewScale =
-    viewScale;
+  if(!printWindow){
 
-  const previousTransform =
-    stage.style.transform;
+    alert(
+      "印刷画面を開けませんでした。Safariのポップアップを許可してから、もう一度PDF保存を押してください。"
+    );
 
-  const previousOrigin =
-    stage.style.transformOrigin;
+    return;
+  }
 
-  /*
-    印刷時は通常倍率へ戻す。
-  */
-  applyScreenScale(1);
-  applyViewScale(1);
+  const printHTML =
+    buildStandalonePrintHTML();
 
-  window.setTimeout(
+  printWindow.document.open();
+  printWindow.document.write(
+    printHTML
+  );
+  printWindow.document.close();
+
+  const runPrint =
     () => {
 
-      window.print();
-
       /*
-        印刷画面を閉じた後に元の表示倍率へ戻す。
+        iOS Safariでレイアウトが確定するまで少し待つ。
+        印刷対象は1枚のSVGのみ。
       */
       window.setTimeout(
         () => {
-          applyScreenScale(
-            previousScreenScale
-          );
-
-          applyViewScale(
-            previousViewScale
-          );
-
-          stage.style.transformOrigin =
-            previousOrigin ||
-            "top left";
-
-          if(previousTransform){
-            stage.style.transform =
-              previousTransform;
-          }
+          printWindow.focus();
+          printWindow.print();
         },
-        300
+        350
       );
-    },
-    100
-  );
+    };
+
+  if(
+    printWindow.document.readyState ===
+    "complete"
+  ){
+    runPrint();
+  }
+  else{
+    printWindow.addEventListener(
+      "load",
+      runPrint,
+      {once:true}
+    );
+  }
 }
+
 
 /* 自動保存 */
 
@@ -5134,19 +8294,16 @@ function fitStageToOverview(){
     return;
   }
 
-  const viewport =
-    getOverviewViewportSize();
-
   const availableWidth =
     Math.max(
       160,
-      viewport.width
+      overviewStageHost.clientWidth
     );
 
   const availableHeight =
     Math.max(
       120,
-      viewport.height
+      overviewStageHost.clientHeight
     );
 
   const baseWidth =
@@ -5157,12 +8314,17 @@ function fitStageToOverview(){
     stageDepthMM /
     stageWidthMM;
 
+  /*
+    配置図モードは全面を必ず見せる。
+    表題・団体名・下部情報を含めても
+    ステージ全体が切れない contain 方式。
+  */
   const fittedScale =
     Math.max(
       0.10,
       Math.min(
         4,
-        Math.max(
+        Math.min(
           availableWidth / baseWidth,
           availableHeight / baseHeight
         )
@@ -5184,11 +8346,7 @@ function fitStageToOverview(){
       ) + "%";
   }
 
-  overviewLayer.style.width =
-    availableWidth + "px";
-
-  overviewLayer.style.height =
-    availableHeight + "px";
+  updatePlanHeader();
 }
 
 
@@ -5692,12 +8850,38 @@ document
 
 
 /*
-  端末回転時は必ず左右メニューを閉じてから再計算。
-  resizeだけに依存しない。
+  iPhone / iPadで入力欄をタップすると、
+  ソフトウェアキーボード表示で resize / visualViewport resize が発生する。
+  その時は左右のガジェットを閉じない。
 */
+function isEditingFormControl(){
+  const active =
+    document.activeElement;
+
+  if(!active){
+    return false;
+  }
+
+  return (
+    active.tagName === "INPUT" ||
+    active.tagName === "TEXTAREA" ||
+    active.tagName === "SELECT" ||
+    active.isContentEditable
+  );
+}
+
+
 let resizeTimer = null;
 
-function scheduleMobileRefresh(){
+function scheduleMobileRefresh(force=false){
+
+  if(
+    !force &&
+    isEditingFormControl()
+  ){
+    return;
+  }
+
   window.clearTimeout(
     resizeTimer
   );
@@ -5705,6 +8889,14 @@ function scheduleMobileRefresh(){
   resizeTimer =
     window.setTimeout(
       () => {
+
+        if(
+          !force &&
+          isEditingFormControl()
+        ){
+          return;
+        }
+
         if(overviewMode){
           fitStageToOverview();
         }
@@ -5716,23 +8908,29 @@ function scheduleMobileRefresh(){
     );
 }
 
+
 window.addEventListener(
   "resize",
-  scheduleMobileRefresh
+  () => {
+    scheduleMobileRefresh(false);
+  }
 );
+
 
 window.addEventListener(
   "orientationchange",
   () => {
+
     closeMobilePanels();
 
     const refreshAfterRotate =
       () => {
+
         if(overviewMode){
           fitStageToOverview();
         }
         else{
-          refreshMobileLayout();
+          scheduleMobileRefresh(true);
         }
       };
 
@@ -5741,10 +8939,6 @@ window.addEventListener(
       180
     );
 
-    /*
-      iPad Safariは横画面切替後に
-      visual viewport が少し遅れて確定することがある。
-    */
     window.setTimeout(
       refreshAfterRotate,
       520
@@ -5752,16 +8946,24 @@ window.addEventListener(
   }
 );
 
+
 if(window.visualViewport){
 
   window.visualViewport.addEventListener(
     "resize",
     () => {
+
+      if(
+        isEditingFormControl()
+      ){
+        return;
+      }
+
       if(overviewMode){
         fitStageToOverview();
       }
       else if(isMobileLayout()){
-        scheduleMobileRefresh();
+        scheduleMobileRefresh(false);
       }
     }
   );
@@ -5769,6 +8971,13 @@ if(window.visualViewport){
   window.visualViewport.addEventListener(
     "scroll",
     () => {
+
+      if(
+        isEditingFormControl()
+      ){
+        return;
+      }
+
       if(overviewMode){
         fitStageToOverview();
       }
@@ -5792,6 +9001,8 @@ render();
 
 showEditor();
 
+updatePlanHeader();
+
 closeMobilePanels();
 
 /*
@@ -5802,11 +9013,16 @@ const restoredAutoSave =
   restoreAutoLayout();
 
 if(
-  !restoredAutoSave &&
-  autoSaveEnabled
+  !restoredAutoSave
 ){
-  scheduleAutoSave();
+  initializeDefaultLayout();
+
+  if(autoSaveEnabled){
+    scheduleAutoSave();
+  }
 }
+
+initializeHistory();
 
 if(isMobileLayout()){
   window.setTimeout(
